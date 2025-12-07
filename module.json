@@ -1,0 +1,60 @@
+{
+  "id": "daggerheart-fear-tracker",
+  "title": "Daggerheart: Fear Tracker",
+  "description": "Adds a Daggerheart-compatible, GM-controlled, animated slider bar with configurable fear tokens to the UI. Includes sync with Daggerheart system resources.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "styles": [
+    "styles/styles.css"
+  ],
+  "scripts": [
+    "scripts/main.js"
+  ],
+  "esmodules": [],
+  "packs": [],
+  "languages": [],
+  "socket": true,
+  "url": "https://github.com/brunocalado/daggerheart-fear-tracker",
+  "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-fear-tracker/main/module.json",
+  "download": "https://codeload.github.com/brunocalado/daggerheart-fear-tracker/zip/main",
+  "relationships": {
+    "requires": [
+      {
+        "id": "color-picker",
+        "type": "module",
+        "manifest": "https://raw.githubusercontent.com/Larkinabout/fvtt-color-picker/refs/heads/master/module.json"
+      }
+    ],
+    "systems": [
+      {
+        "id": "daggerheart",
+        "type": "system",
+        "compatibility": {}
+      }
+    ]  
+  },
+  "authors": [
+    {
+      "name": "Andrew Brick"
+    },
+    {
+      "name": "Mestre Digital"
+    }
+  ],
+  "packs": [
+    {
+      "label": "Fear Tracker - Macros",
+      "type": "Macro",
+      "name": "fear-tracker-macros",
+      "path": "packs/fear-tracker-macros",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ]  
+}

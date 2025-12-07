@@ -1,0 +1,176 @@
+/* Default CSS Variable (will be overridden by JS) */
+:root {
+    --fear-glow-color: #6a0dad; /* Default dark purple */
+}
+
+/* Main Container (Large Tracker) */
+#fear-tracker-container {
+    position: fixed;
+    width: 100%;
+    z-index: 100;
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    transform-origin: top left; 
+}
+
+.fear-slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    pointer-events: auto;
+}
+
+#slider-bar {
+    /* Width is now set by JS via settings */
+    background-size: 100% 100%; /* Ensure background stretches to new width */
+    background-repeat: no-repeat;
+    height: 50px;
+    margin-left: -15px;
+    margin-right: -15px;
+    position: relative;
+    display: flex;
+    cursor: move;
+}
+
+/* Pips (Fear Tokens) */
+.pip-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.pip-wrapper {
+    position: absolute;
+    top: 10px;
+    width: 23px;
+    height: 30px;
+    transition: left 1s ease;
+}
+
+.pip-img {
+    position: absolute;
+    width: 23px;
+    height: 30px;
+    transition: opacity 1s ease;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    display: block;
+}
+
+/* Static active state (uses color variable) */
+.pip-active {
+    filter: drop-shadow(0 0 6px var(--fear-glow-color));
+}
+
+/* Pulse Animation */
+@keyframes fear-pulse-animation {
+    0% {
+        filter: drop-shadow(0 0 4px var(--fear-glow-color));
+    }
+    50% {
+        filter: drop-shadow(0 0 12px var(--fear-glow-color));
+    }
+    100% {
+        filter: drop-shadow(0 0 4px var(--fear-glow-color));
+    }
+}
+
+/* Apply animation if pulse class is present */
+.pip-active.pulse {
+    animation: fear-pulse-animation 2s infinite ease-in-out;
+}
+
+/* Control Buttons */
+.control-btn {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    display: block;
+    cursor: pointer;
+}
+
+.control-btn.small {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+}
+
+.control-btn.medium {
+    width: 20px;
+    height: 20px;
+    margin-top: 6px;
+}
+
+.visibility-icon {
+    cursor: pointer;
+    font-size: 24px;
+    color: white;
+    margin-left: 8px;
+    flex: 0 0 auto;
+}
+
+.visibility-icon.small {
+    font-size: 16px;
+    margin-left: 4px;
+    margin-top: 2px;
+}
+
+/* Number Tracker */
+#number-fear-tracker {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 5px;
+    z-index: 100;
+    cursor: move;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.5s ease;
+}
+
+.number-header {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    width: 100%;
+}
+
+.number-title {
+    flex: 1;
+    text-align: left;
+    font-size: 16px;
+    color: var(--color-text-light-primary);
+}
+
+.number-controls {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+#number-fear-tracker-num-cont {
+    margin: 0 4px;
+    display: flex;
+    flex-shrink: 0;
+    justify-content: center;
+    align-items: center;
+}
