@@ -2,6 +2,10 @@
 
 Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Daggerheart system on Foundry VTT. This module is designed to integrate seamlessly with the game system, providing visual feedback for players and GMs alike.
 
+<p align="center">
+  <img width="800" src="docs/themes.webp">
+</p>
+
 ## Features
 
 - **Automatic Sync:** The tracker automatically syncs with the Daggerheart system's Fear resource and Homebrew configuration (Max Fear tokens). Changes in the character sheet update the tracker, and changes in the tracker update the sheet.
@@ -25,12 +29,16 @@ You can access the module settings in the Foundry VTT "Configure Settings" menu 
 * **Tracker Bar Width:** Adjust the width of the tracker bar.
 * **Custom Images:** If the "Custom" theme is selected, you can provide file paths for the Slider, Active Pip, Inactive Pip, Plus Button, and Minus Button.
 
+<p align="center">
+  <img width="600" src="docs/settings.webp">
+</p>
+
 ## Macro: Reset Position
 
 If you accidentally drag the Fear Tracker off-screen or lose it, don't worry! This module comes with a built-in Macro to reset its position.
 
 1. Open the **Compendium Packs** tab in Foundry.
-2. Look for the **"Fear Tracker Macros"** compendium.
+2. Look for the **"Fear Tracker - Macros"** compendium.
 3. Drag the **"Reset Fear Tracker Position"** macro to your hotbar.
 4. Click it to reset the tracker to the default position (100px, 100px).
 
