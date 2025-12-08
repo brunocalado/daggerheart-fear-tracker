@@ -1,9 +1,9 @@
-/* Default CSS Variable (will be overridden by JS) */
+/* Default CSS Variable */
 :root {
-    --fear-glow-color: #6a0dad; /* Default dark purple */
+    --fear-glow-color: #6a0dad; 
 }
 
-/* Main Container (Large Tracker) */
+/* Main Container */
 #fear-tracker-container {
     position: fixed;
     width: 100%;
@@ -25,8 +25,7 @@
 }
 
 #slider-bar {
-    /* Width is now set by JS via settings */
-    background-size: 100% 100%; /* Ensure background stretches to new width */
+    background-size: 100% 100%; 
     background-repeat: no-repeat;
     height: 50px;
     margin-left: -15px;
@@ -36,7 +35,7 @@
     cursor: move;
 }
 
-/* Pips (Fear Tokens) */
+/* Pips */
 .pip-container {
     position: absolute;
     top: 0;
@@ -53,6 +52,9 @@
     width: 23px;
     height: 30px;
     transition: left 1s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .pip-img {
@@ -64,29 +66,42 @@
     outline: none;
     background-color: transparent;
     display: block;
+    transform-origin: center center;
+    /* Hint for browser optimization */
+    will-change: transform, filter;
 }
 
-/* Static active state (uses color variable) */
+/* Static active state */
 .pip-active {
     filter: drop-shadow(0 0 6px var(--fear-glow-color));
 }
 
-/* Pulse Animation */
-@keyframes fear-pulse-animation {
-    0% {
-        filter: drop-shadow(0 0 4px var(--fear-glow-color));
-    }
-    50% {
-        filter: drop-shadow(0 0 12px var(--fear-glow-color));
-    }
-    100% {
-        filter: drop-shadow(0 0 4px var(--fear-glow-color));
-    }
+/* 1. Glow Animation (Pulse) */
+@keyframes fear-glow {
+    0% { filter: drop-shadow(0 0 4px var(--fear-glow-color)); }
+    50% { filter: drop-shadow(0 0 12px var(--fear-glow-color)); }
+    100% { filter: drop-shadow(0 0 4px var(--fear-glow-color)); }
 }
 
-/* Apply animation if pulse class is present */
+/* 2. Scale Animation (Breath) */
+@keyframes fear-breath {
+    0% { transform: scale(1.0); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1.0); }
+}
+
+/* Classes applied by JS */
 .pip-active.pulse {
-    animation: fear-pulse-animation 2s infinite ease-in-out;
+    animation: fear-glow 2.5s infinite ease-in-out;
+}
+
+.pip-active.breathing {
+    animation: fear-breath 3s infinite ease-in-out;
+}
+
+/* If both are active, combine them via comma separation */
+.pip-active.pulse.breathing {
+    animation: fear-glow 2.5s infinite ease-in-out, fear-breath 3s infinite ease-in-out;
 }
 
 /* Control Buttons */
@@ -99,19 +114,14 @@
     background-color: transparent;
     display: block;
     cursor: pointer;
+    transition: transform 0.2s;
 }
 
-.control-btn.small {
-    width: 16px;
-    height: 16px;
-    margin-top: 2px;
-}
+.control-btn:hover { transform: scale(1.1); }
+.control-btn:active { transform: scale(0.9); }
 
-.control-btn.medium {
-    width: 20px;
-    height: 20px;
-    margin-top: 6px;
-}
+.control-btn.small { width: 16px; height: 16px; margin-top: 2px; }
+.control-btn.medium { width: 20px; height: 20px; margin-top: 6px; }
 
 .visibility-icon {
     cursor: pointer;
@@ -119,13 +129,11 @@
     color: white;
     margin-left: 8px;
     flex: 0 0 auto;
+    transition: opacity 0.2s;
 }
 
-.visibility-icon.small {
-    font-size: 16px;
-    margin-left: 4px;
-    margin-top: 2px;
-}
+.visibility-icon:hover { opacity: 0.8; }
+.visibility-icon.small { font-size: 16px; margin-left: 4px; margin-top: 2px; }
 
 /* Number Tracker */
 #number-fear-tracker {
