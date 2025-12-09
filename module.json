@@ -1,8 +1,8 @@
 {
   "id": "daggerheart-fear-tracker",
   "title": "Daggerheart: Fear Tracker",
-  "description": "Adds a Daggerheart-compatible, GM-controlled, animated slider bar with configurable fear tokens to the UI. Includes sync with Daggerheart system resources.",
-  "version": "1.0.0",
+  "description": "Adds an animated slider bar with configurable fear tokens to the UI. Includes sync with Daggerheart system resources.",
+  "version": "1.0.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13"

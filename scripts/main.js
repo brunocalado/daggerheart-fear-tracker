@@ -33,6 +33,61 @@ Hooks.once("ready", async () => {
 
         // Initialize bar
         initializeTracker();
+
+        // --- EXPOSE API ---
+        window.FearTracker = {
+            /**
+             * Resets the Fear Tracker position.
+             * Default behavior: Centers horizontally at the top of the screen.
+             * @param {number|null} x - Specific Left position. If null, centers horizontally.
+             * @param {number|null} y - Specific Top position. If null, defaults to 100px.
+             */
+            Reset: async (x = null, y = null) => {
+                try {
+                    const el = document.getElementById("fear-tracker-container");
+                    if (!el) return;
+
+                    // Get current scale to calculate visual width
+                    const sizeSetting = game.settings.get(MODULE_ID, "trackerSize");
+                    const sizeMap = { small: 0.6, normal: 1.0, large: 1.4 };
+                    const scale = sizeMap[sizeSetting] || 1.0;
+
+                    // Calculate visual width
+                    const visualWidth = el.offsetWidth * scale;
+
+                    // Determine positions
+                    let leftVal, topVal;
+
+                    if (x !== null) {
+                        leftVal = typeof x === "number" ? `${x}px` : x;
+                    } else {
+                        // Calculate Center: (Window Width / 2) - (Tracker Visual Width / 2)
+                        const centeredX = (window.innerWidth / 2) - (visualWidth / 2);
+                        leftVal = `${Math.max(0, centeredX)}px`;
+                    }
+
+                    if (y !== null) {
+                        topVal = typeof y === "number" ? `${y}px` : y;
+                    } else {
+                        topVal = "100px"; // Default top padding
+                    }
+
+                    const newPos = { left: leftVal, top: topVal };
+
+                    // 1. Save setting
+                    await game.settings.set(MODULE_ID, "largeTrackerPosition", newPos);
+                    
+                    // 2. Direct DOM update
+                    el.style.left = newPos.left;
+                    el.style.top = newPos.top;
+                    
+                    ui.notifications.info(`Daggerheart Fear Tracker: Reset to Top Center.`);
+                } catch (err) {
+                    console.error("FearTracker API Error:", err);
+                    ui.notifications.warn("Could not reset Fear Tracker position.");
+                }
+            }
+        };
         
     } catch (err) {
         console.error("Daggerheart Fear Tracker | Initialization Error:", err);
@@ -61,6 +116,9 @@ Hooks.once("ready", async () => {
         if (setting.key === `${MODULE_ID}.pulseColor`) applyPulseColor();
         if (setting.key === `${MODULE_ID}.enablePulse`) reRender();
         if (setting.key === `${MODULE_ID}.enableScaleAnimation`) reRender();
+        
+        // NEW: Re-render on Size change
+        if (setting.key === `${MODULE_ID}.trackerSize`) reRender();
     });
 
     // Resize listener with Debounce
@@ -142,7 +200,20 @@ function renderLargeTracker() {
 
     const isGM = game.user.isGM;
     const pos = game.settings.get(MODULE_ID, "largeTrackerPosition");
-    const scale = game.settings.get(MODULE_ID, "trackerScale");
+    
+    // SCALE SETTINGS
+    const sizeSetting = game.settings.get(MODULE_ID, "trackerSize");
+    const sizeMap = { small: 0.6, normal: 1.0, large: 1.4 };
+    const scale = sizeMap[sizeSetting] || 1.0;
+
+    // PIP ALIGNMENT SETTINGS (Dynamic Margin Top)
+    const pipOffsets = {
+        small: "-1px",
+        normal: "-2px",
+        large: "-1px"
+    };
+    const pipMarginTop = pipOffsets[sizeSetting] || "4px";
+
     const preferredWidth = game.settings.get(MODULE_ID, "trackerWidth");
     
     // Calculate responsive width
@@ -185,7 +256,10 @@ function renderLargeTracker() {
 
     for (let i = 0; i < totalPips; i++) {
         const pipWrapper = document.createElement("div");
-        pipWrapper.className = "pip-wrapper";
+        pipWrapper.className = "pip-wrapper"; 
+        
+        // APPLY DYNAMIC MARGIN TOP
+        pipWrapper.style.marginTop = pipMarginTop;
 
         const inactiveImg = document.createElement("img");
         inactiveImg.src = inactiveSrc;
@@ -210,7 +284,7 @@ function renderLargeTracker() {
 
     // GM Controls
     if (isGM) {
-        const minus = createControlBtn("minus", () => modifyCount(1));
+        const minus = createControlBtn("minus", () => modifyCount(1)); 
         const plus = createControlBtn("plus", () => modifyCount(-1));
         const eye = createVisibilityBtn();
         
@@ -250,6 +324,12 @@ function initializeTracker() {
     // Socket listeners
     game.socket.on(`module.${MODULE_ID}`, (payload) => {
         if (payload.type === "updatePips") {
+            // Check if Fear increased to trigger animation on clients
+            // If new leftSideCount is LOWER than current, Fear has INCREASED.
+            const currentLeft = game.settings.get(MODULE_ID, "leftSideCount");
+            if (payload.leftSideCount < currentLeft) {
+                triggerTremor();
+            }
             updatePips(payload.leftSideCount);
         }
         if (payload.type === "toggleVisibility") {
@@ -262,6 +342,32 @@ function initializeTracker() {
 /* Logic: User Interaction                     */
 /* -------------------------------------------- */
 
+// Store timeout reference to prevent overlapping calls
+let tremorTimeout;
+
+/**
+ * Applies a visual tremor effect to the slider wrapper.
+ * Now includes a DELAY to match the CSS movement transition (0.8s).
+ */
+function triggerTremor() {
+    clearTimeout(tremorTimeout);
+
+    // Delay tremor by 800ms (0.8 second) to sync with token movement/impact
+    tremorTimeout = setTimeout(() => {
+        const wrapper = document.querySelector(".fear-slider-wrapper");
+        if (!wrapper) return;
+        
+        // Reset animation to allow re-triggering
+        wrapper.classList.remove("tremor-effect");
+        
+        // Force reflow
+        void wrapper.offsetWidth;
+        
+        // Apply animation
+        wrapper.classList.add("tremor-effect");
+    }, 800); // 0.8 Second Delay
+}
+
 function modifyCount(delta) {
     if (!game.user.isGM) return;
     let current = game.settings.get(MODULE_ID, "leftSideCount");
@@ -272,6 +378,13 @@ function modifyCount(delta) {
     if (next > max) next = max;
 
     if (next !== current) {
+        // Trigger tremor if Fear is ADDED.
+        // Fear is added when "safe pips" (leftSideCount) decreases.
+        // So if next < current, we are adding fear.
+        if (next < current) {
+            triggerTremor();
+        }
+
         game.settings.set(MODULE_ID, "leftSideCount", next);
         updatePips(next);
         game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: next });
@@ -366,7 +479,7 @@ function getMaxFearTokens() {
         if (configData && typeof configData === 'object' && 'maxFear' in configData) {
             return Number(configData.maxFear) || DEFAULT_MAX;
         }
-        return DEFAULT_MAX;
+        return Number(DEFAULT_MAX);
     } catch (err) {
         return DEFAULT_MAX;
     }
@@ -379,6 +492,12 @@ async function syncTrackerFromSystem(systemFearValue) {
     const currentLeftSide = game.settings.get(MODULE_ID, "leftSideCount");
 
     if (newLeftSide !== currentLeftSide) {
+        // Trigger tremor if fear increased
+        // (New LeftSide < Current LeftSide means Safe pips decreased -> Fear increased)
+        if (newLeftSide < currentLeftSide) {
+            triggerTremor();
+        }
+
         if (game.user.isGM) {
              await game.settings.set(MODULE_ID, "leftSideCount", newLeftSide);
              game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: newLeftSide });
@@ -476,15 +595,25 @@ function registerSettings() {
         scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
     });
 
-    // Visual settings (Client Scope)
-    game.settings.register(MODULE_ID, "trackerScale", {
-        name: "Tracker Scale", hint: "Adjust the size of the Fear Tracker bar locally.",
-        scope: "client", config: true, type: Number, range: { min: 0.5, max: 2.0, step: 0.1 }, default: 1.0, onChange: () => reRender()
+    // REPLACED: Tracker Scale with Preset Size (Small/Normal/Large)
+    game.settings.register(MODULE_ID, "trackerSize", {
+        name: "Tracker Size", 
+        hint: "Select the size of the Fear Tracker bar locally.",
+        scope: "client", 
+        config: true, 
+        type: String, 
+        choices: {
+            "small": "Small",
+            "normal": "Normal",
+            "large": "Large"
+        },
+        default: "normal", 
+        onChange: () => reRender()
     });
 
     game.settings.register(MODULE_ID, "trackerWidth", {
         name: "Tracker Bar Width", hint: "Adjust the width of the bar in pixels locally to fit your screen.",
-        scope: "client", config: true, type: Number, range: { min: 400, max: 2000, step: 10 }, default: 1000, onChange: () => reRender()
+        scope: "client", config: true, type: Number, range: { min: 400, max: 2000, step: 10 }, default: 700, onChange: () => reRender()
     });
 
     // Custom Images (World/GM)

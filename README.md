@@ -2,89 +2,61 @@
 
 Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Daggerheart system on Foundry VTT. This module is designed to integrate seamlessly with the game system, providing visual feedback for players and GMs alike.
 
-<p align="center">
-  <img width="800" src="docs/themes.webp">
-</p>
+<video src="https://github.com/user-attachments/assets/e81c608f-982a-4c8d-8093-0d4c9576c966" 
+       controls 
+       width="720"
+       autoplay 
+       loop 
+       muted></video>
 
 ## Features
 
-- **Automatic Sync:** The tracker automatically syncs with the Daggerheart system's Fear resource and Homebrew configuration (Max Fear tokens). Changes in the character sheet update the tracker, and changes in the tracker update the sheet.
-- **Multiple Themes:** Choose from a variety of visual styles including Blood Drop, Bones, Capybara, Demon, Fire, Skull, Stone, and Stone Red.
-- **Visual Effects:** Active fear tokens feature customizable pulsing (glow) and breathing (scale) animations.
+- **Automatic Sync:** The tracker automatically syncs with the Daggerheart system's Fear resource. Changes in the character sheet update the tracker, and changes in the tracker update the sheet.
+- **Visual Effects:**
+  - **Glow & Breath:** Active fear tokens pulse and breathe to draw attention.
+  - **Tremor:** The bar shakes briefly when Fear increases, adding impact to the moment.
 - **Customizable:**
-  - Adjust the visual scale and width of the tracker locally to fit your screen.
-  - Choose the color of the pulse effect.
-  - Enable/Disable specific animations.
-  - Use your own custom images for the slider, pips, and buttons.
+  - **Themes:** Choose from various styles like Skull, Blood Drop, Stone, and more.
+  - **Size:** Easily switch between **Small**, **Normal**, and **Large** sizes to fit your screen.
+  - **Width:** Adjust how wide the bar is.
 - **Drag & Drop:** Place the tracker anywhere on your screen. Positions are saved per user.
-- **Visibility Control:**
-  - **GM Control:** Toggle global visibility for all players using the eye icon.
-  - **Local Hide:** Players can choose to hide the tracker locally via settings if they prefer (does not affect others).
+- **Visibility Control:** The GM can toggle visibility for everyone. Players can also hide it locally for themselves if needed.
 
 ## Configuration
 
-You can access the module settings in the Foundry VTT "Configure Settings" menu under the "Module Settings" tab.
+Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** tab.
 
-* **Theme:** Select the visual theme for the tracker.
-* **Pulse Effect (Glow):** Enable or disable the glowing animation for active tokens.
-* **Pulse Glow Color:** Choose the color of the glow effect.
-* **Breathing Effect (Scale):** Enable or disable the growing/shrinking animation for active tokens.
-* **Tracker Scale:** Adjust the size of the Fear Tracker bar locally.
-* **Tracker Bar Width:** Adjust the width of the bar in pixels locally to fit your screen.
-* **Custom Images:** If the "Custom" theme is selected, the GM can provide file paths for the Slider, Active Pip, Inactive Pip, Plus Button, and Minus Button.
-* **Hide Fear Tracker (Local):** Hides the Fear Tracker module bar only for you. Does not affect the System bar or other players.
-
-<p align="center">
-  <img width="600" src="docs/settings.webp">
-</p>
+* **Theme:** Choose how the tracker looks.
+* **Tracker Size:** Select **Small**, **Normal**, or **Large**. (Recommended: Normal).
+* **Tracker Bar Width:** Adjust the width in pixels.
+* **Pulse/Breathing Effects:** Enable or disable animations.
+* **Pulse Glow Color:** Pick a custom color for the glowing effect.
+* **Custom Images:** If using the "Custom" theme, you can upload your own images here.
 
 ## Macro: Reset Position
 
-If you accidentally drag the Fear Tracker off-screen or lose it, don't worry! This module comes with a built-in Macro to reset its position.
+If you lost the tracker off-screen or want to center it perfectly at the top of your window, you don't need a complex script anymore.
 
-1. Open the **Compendium Packs** tab in Foundry.
-2. Look for the **"Fear Tracker - Macros"** compendium.
-3. Drag the **"Reset Fear Tracker Position"** macro to your hotbar.
-4. Click it to reset the tracker to the default position (100px, 100px).
-
-Alternatively, you can create a new script macro with the following code:
+Simply create a new Script Macro with this single command:
 
 ```javascript
-// Macro to reset the Daggerheart Fear Tracker position
-// Useful if the bar has been moved off-screen or is lost.
+// Resets the tracker to the top-center of your screen
+FearTracker.Reset();
+```
 
-const MODULE_ID = "daggerheart-fear-tracker";
-const ELEMENT_ID = "fear-tracker-container";
+You can also specify coordinates if you prefer a specific spot (X, Y):
 
-// Default position to reset to (adjust if needed)
-const defaultPosition = { top: "100px", left: "100px" };
-
-try {
-    // 1. Save the new position to client settings (persists after reload)
-    await game.settings.set(MODULE_ID, "largeTrackerPosition", defaultPosition);
-
-    // 2. Force immediate visual update by modifying the DOM directly
-    // This ensures the player sees the bar move without needing to refresh (F5)
-    const tracker = document.getElementById(ELEMENT_ID);
-    if (tracker) {
-        tracker.style.top = defaultPosition.top;
-        tracker.style.left = defaultPosition.left;
-    }
-
-    // Notify the user
-    ui.notifications.info("Daggerheart Fear Tracker: Position reset to default (100px, 100px).");
-
-} catch (error) {
-    console.error("Fear Tracker Reset Error:", error);
-    ui.notifications.warn("Daggerheart Fear Tracker: Could not reset position. Make sure the module is active.");
-}
+```javascript
+// Moves tracker to 100px from left and 100px from top
+FearTracker.Reset(100, 100);
 ```
 
 ## Manual Installation
 
-To install this module manually, use the following manifest URL in the "Install Module" dialog within Foundry VTT:
-
-`https://raw.githubusercontent.com/brunocalado/daggerheart-fear-tracker/main/module.json`
+1. Copy this link: `https://raw.githubusercontent.com/brunocalado/daggerheart-fear-tracker/main/module.json`
+2. Open Foundry VTT.
+3. Go to the **"Add-on Modules"** tab and click **"Install Module"**.
+4. Paste the link into the **"Manifest URL"** box and click Install.
 
 ## 📜 Changelog
 
