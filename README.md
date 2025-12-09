@@ -33,6 +33,10 @@ Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** 
 * **Pulse Glow Color:** Pick a custom color for the glowing effect.
 * **Custom Images:** If using the "Custom" theme, you can upload your own images here.
 
+<p align="center">
+  <img width="500" src="docs/settings.webp">
+</p>
+
 ## Macro: Reset Position
 
 If you lost the tracker off-screen or want to center it perfectly at the top of your window, you don't need a complex script anymore.
