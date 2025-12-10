@@ -582,10 +582,14 @@ function registerSettings() {
         scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
     });
 
-    // MOVED: Pulse Color Setting (immediately after Pulse Effect)
+    // MODIFIED: Simple text field instead of ColorPicker
     game.settings.register(MODULE_ID, "pulseColor", {
-        name: "Pulse Glow Color", hint: "Select the color for the fear token glow/pulse effect.",
-        scope: "world", config: true, type: new game.colorPicker.ColorPickerField(), default: "#6a0dad",
+        name: "Pulse Glow Color", 
+        hint: "Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)).",
+        scope: "world", 
+        config: true, 
+        type: String, 
+        default: "#6a0dad",
         onChange: () => applyPulseColor()
     });
 

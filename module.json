@@ -2,7 +2,7 @@
   "id": "daggerheart-fear-tracker",
   "title": "Daggerheart: Fear Tracker",
   "description": "Adds an animated slider bar with configurable fear tokens to the UI. Includes sync with Daggerheart system resources.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -21,13 +21,6 @@
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-fear-tracker/main/module.json",
   "download": "https://codeload.github.com/brunocalado/daggerheart-fear-tracker/zip/main",
   "relationships": {
-    "requires": [
-      {
-        "id": "color-picker",
-        "type": "module",
-        "manifest": "https://raw.githubusercontent.com/Larkinabout/fvtt-color-picker/refs/heads/master/module.json"
-      }
-    ],
     "systems": [
       {
         "id": "daggerheart",
