@@ -1,3 +1,6 @@
+# 1.0.3
+- tremor effect removed 
+
 # 1.0.2
 - removed color picker
 

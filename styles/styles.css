@@ -104,21 +104,6 @@
     100% { transform: scale(1.0); }
 }
 
-/* 3. Tremor Animation (Impact/Shock) */
-@keyframes fear-tremor {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    10% { transform: translate(-3px, -3px) rotate(-2deg); }
-    20% { transform: translate(3px, 3px) rotate(2deg); }
-    30% { transform: translate(-3px, 3px) rotate(0deg); }
-    40% { transform: translate(3px, -3px) rotate(2deg); }
-    50% { transform: translate(-2px, 3px) rotate(-2deg); }
-    60% { transform: translate(2px, -3px) rotate(0deg); }
-    70% { transform: translate(-2px, 2px) rotate(2deg); }
-    80% { transform: translate(2px, -2px) rotate(-2deg); }
-    90% { transform: translate(0, 0) rotate(0deg); }
-    100% { transform: translate(0, 0) rotate(0deg); }
-}
-
 /* Classes applied by JS */
 .pip-active.pulse {
     animation: fear-glow 2.5s infinite ease-in-out;
@@ -130,11 +115,6 @@
 
 .pip-active.pulse.breathing {
     animation: fear-glow 2.5s infinite ease-in-out, fear-breath 3s infinite ease-in-out;
-}
-
-/* Tremor Effect Class */
-.tremor-effect {
-    animation: fear-tremor 0.5s ease-out; 
 }
 
 /* Control Buttons */

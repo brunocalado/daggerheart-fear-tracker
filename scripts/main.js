@@ -324,12 +324,7 @@ function initializeTracker() {
     // Socket listeners
     game.socket.on(`module.${MODULE_ID}`, (payload) => {
         if (payload.type === "updatePips") {
-            // Check if Fear increased to trigger animation on clients
-            // If new leftSideCount is LOWER than current, Fear has INCREASED.
-            const currentLeft = game.settings.get(MODULE_ID, "leftSideCount");
-            if (payload.leftSideCount < currentLeft) {
-                triggerTremor();
-            }
+            // Tremor effect removed
             updatePips(payload.leftSideCount);
         }
         if (payload.type === "toggleVisibility") {
@@ -342,32 +337,6 @@ function initializeTracker() {
 /* Logic: User Interaction                     */
 /* -------------------------------------------- */
 
-// Store timeout reference to prevent overlapping calls
-let tremorTimeout;
-
-/**
- * Applies a visual tremor effect to the slider wrapper.
- * Now includes a DELAY to match the CSS movement transition (0.8s).
- */
-function triggerTremor() {
-    clearTimeout(tremorTimeout);
-
-    // Delay tremor by 800ms (0.8 second) to sync with token movement/impact
-    tremorTimeout = setTimeout(() => {
-        const wrapper = document.querySelector(".fear-slider-wrapper");
-        if (!wrapper) return;
-        
-        // Reset animation to allow re-triggering
-        wrapper.classList.remove("tremor-effect");
-        
-        // Force reflow
-        void wrapper.offsetWidth;
-        
-        // Apply animation
-        wrapper.classList.add("tremor-effect");
-    }, 800); // 0.8 Second Delay
-}
-
 function modifyCount(delta) {
     if (!game.user.isGM) return;
     let current = game.settings.get(MODULE_ID, "leftSideCount");
@@ -378,13 +347,7 @@ function modifyCount(delta) {
     if (next > max) next = max;
 
     if (next !== current) {
-        // Trigger tremor if Fear is ADDED.
-        // Fear is added when "safe pips" (leftSideCount) decreases.
-        // So if next < current, we are adding fear.
-        if (next < current) {
-            triggerTremor();
-        }
-
+        // Tremor effect removed
         game.settings.set(MODULE_ID, "leftSideCount", next);
         updatePips(next);
         game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: next });
@@ -492,12 +455,7 @@ async function syncTrackerFromSystem(systemFearValue) {
     const currentLeftSide = game.settings.get(MODULE_ID, "leftSideCount");
 
     if (newLeftSide !== currentLeftSide) {
-        // Trigger tremor if fear increased
-        // (New LeftSide < Current LeftSide means Safe pips decreased -> Fear increased)
-        if (newLeftSide < currentLeftSide) {
-            triggerTremor();
-        }
-
+        // Tremor effect removed
         if (game.user.isGM) {
              await game.settings.set(MODULE_ID, "leftSideCount", newLeftSide);
              game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: newLeftSide });
