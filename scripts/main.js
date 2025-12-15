@@ -34,6 +34,12 @@ Hooks.once("ready", async () => {
         // Initialize bar
         initializeTracker();
 
+        // Automatically hide system bar if setting enabled
+        // Delay slightly to ensure system settings are fully loaded
+        setTimeout(() => {
+            checkAndHideSystemBar();
+        }, 1000);
+
         // --- EXPOSE API ---
         window.FearTracker = {
             /**
@@ -117,8 +123,11 @@ Hooks.once("ready", async () => {
         if (setting.key === `${MODULE_ID}.enablePulse`) reRender();
         if (setting.key === `${MODULE_ID}.enableScaleAnimation`) reRender();
         
-        // NEW: Re-render on Size change
+        // Re-render on Size change
         if (setting.key === `${MODULE_ID}.trackerSize`) reRender();
+
+        // Check system bar visibility
+        if (setting.key === `${MODULE_ID}.hideSystemBar`) checkAndHideSystemBar();
     });
 
     // Resize listener with Debounce
@@ -324,7 +333,6 @@ function initializeTracker() {
     // Socket listeners
     game.socket.on(`module.${MODULE_ID}`, (payload) => {
         if (payload.type === "updatePips") {
-            // Tremor effect removed
             updatePips(payload.leftSideCount);
         }
         if (payload.type === "toggleVisibility") {
@@ -347,7 +355,6 @@ function modifyCount(delta) {
     if (next > max) next = max;
 
     if (next !== current) {
-        // Tremor effect removed
         game.settings.set(MODULE_ID, "leftSideCount", next);
         updatePips(next);
         game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: next });
@@ -455,7 +462,6 @@ async function syncTrackerFromSystem(systemFearValue) {
     const currentLeftSide = game.settings.get(MODULE_ID, "leftSideCount");
 
     if (newLeftSide !== currentLeftSide) {
-        // Tremor effect removed
         if (game.user.isGM) {
              await game.settings.set(MODULE_ID, "leftSideCount", newLeftSide);
              game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: newLeftSide });
@@ -511,6 +517,65 @@ function applyPulseColor() {
     document.documentElement.style.setProperty('--fear-glow-color', color);
 }
 
+/**
+ * Checks client settings (including native localStorage) for the system's "displayFear" property
+ * and sets it to "hide" if the "Hide System Bar" module setting is enabled.
+ */
+async function checkAndHideSystemBar() {
+    const shouldHide = game.settings.get(MODULE_ID, "hideSystemBar");
+    if (!shouldHide) return;
+
+    // Use native localStorage which is standard across all browsers
+    const storageLength = localStorage.length;
+
+    for (let i = 0; i < storageLength; i++) {
+        const storageKey = localStorage.key(i);
+        // Only proceed if it looks relevant (basic check)
+        if (!storageKey) continue;
+
+        const storageValue = localStorage.getItem(storageKey);
+        
+        // Optimize: Check as string first to avoid unnecessary parsing
+        if (storageValue && storageValue.includes("displayFear")) {
+            
+            try {
+                const parsed = JSON.parse(storageValue);
+                
+                // Confirm structure
+                if (parsed && typeof parsed === 'object' && 'displayFear' in parsed) {
+                    
+                    if (parsed.displayFear !== 'hide') {
+                        // Update the object in memory
+                        parsed.displayFear = 'hide';
+                        
+                        // 1. Try Foundry API if it looks like a "namespace.key" setting
+                        let updatedViaAPI = false;
+                        if (storageKey.includes('.')) {
+                            const parts = storageKey.split('.');
+                            const namespace = parts[0];
+                            const key = parts.slice(1).join('.');
+                            
+                            try {
+                                await game.settings.set(namespace, key, parsed);
+                                updatedViaAPI = true;
+                            } catch (e) {
+                                // Fail silently on API error, fallback will handle it
+                            }
+                        }
+
+                        // 2. Fallback: Direct localStorage write if API failed or key format is non-standard
+                        if (!updatedViaAPI) {
+                            localStorage.setItem(storageKey, JSON.stringify(parsed));
+                        }
+                    }
+                }
+            } catch (err) {
+                // Not JSON or parse error, skip silently
+            }
+        }
+    }
+}
+
 function registerSettings() {
     // Theme Selection (Alphabetical)
     game.settings.register(MODULE_ID, "theme", {
@@ -540,7 +605,7 @@ function registerSettings() {
         scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
     });
 
-    // MODIFIED: Simple text field instead of ColorPicker
+    // Text field for CSS color
     game.settings.register(MODULE_ID, "pulseColor", {
         name: "Pulse Glow Color", 
         hint: "Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)).",
@@ -557,7 +622,7 @@ function registerSettings() {
         scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
     });
 
-    // REPLACED: Tracker Scale with Preset Size (Small/Normal/Large)
+    // Tracker Scale with Preset Size (Small/Normal/Large)
     game.settings.register(MODULE_ID, "trackerSize", {
         name: "Tracker Size", 
         hint: "Select the size of the Fear Tracker bar locally.",
@@ -599,6 +664,17 @@ function registerSettings() {
         name: "Hide Fear Tracker (Local)",
         hint: "Hides the Fear Tracker module bar only for you. Does not affect the System bar or other players.",
         scope: "client", config: true, type: Boolean, default: false, onChange: () => reRender()
+    });
+
+    // Hide System Bar
+    game.settings.register(MODULE_ID, "hideSystemBar", {
+        name: "Hide System Bar",
+        hint: "Automatically sets the Daggerheart system's Fear bar setting to 'hide'.",
+        scope: "client", 
+        config: true, 
+        type: Boolean, 
+        default: true,
+        onChange: () => checkAndHideSystemBar()
     });
 
     // Internal State Settings (Hidden from menu)

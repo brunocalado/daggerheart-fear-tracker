@@ -32,6 +32,7 @@ Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** 
 * **Pulse/Breathing Effects:** Enable or disable animations.
 * **Pulse Glow Color:** Pick a custom color for the glowing effect.
 * **Custom Images:** If using the "Custom" theme, you can upload your own images here.
+* **Hide System Bar:** Automatically sets the Daggerheart system's Fear bar setting to 'hide' to avoid visual clutter and duplication.
 
 <p align="center">
   <img width="500" src="docs/settings.webp">
@@ -61,6 +62,41 @@ FearTracker.Reset(100, 100);
 2. Open Foundry VTT.
 3. Go to the **"Add-on Modules"** tab and click **"Install Module"**.
 4. Paste the link into the **"Manifest URL"** box and click Install.
+
+# 🗡️ My Daggerheart Modules
+
+### 📦 [daggerheart-extra-content](https://github.com/brunocalado/daggerheart-extra-content)
+> Resources for Daggerheart
+
+### 📏 [daggerheart-distances](https://github.com/brunocalado/daggerheart-distances)
+> Visualizes Daggerheart combat ranges with customizable rings and hover distance calculations.
+
+### 🛒 [daggerheart-store](https://github.com/brunocalado/daggerheart-store)
+> A dynamic, interactive, and fully configurable store for the Daggerheart system in Foundry VTT. Allow your players to purchase weapons, armor, potions, and miscellaneous items directly from an elegant visual interface, while the GM maintains full control over prices and what is displayed.
+
+### 😱 [daggerheart-fear-tracker](https://github.com/brunocalado/daggerheart-fear-tracker)
+> Adds an animated slider bar with configurable fear tokens to the UI. Includes sync with Daggerheart system resources.
+
+### 💀 [daggerheart-death-moves](https://github.com/brunocalado/daggerheart-death-moves)
+> Enhances the Death Move moment with immersive audio, visual effects, and a dramatic interface for choosing between Avoid Death, Blaze of Glory, or Risk it All.
+
+### 🤖 [daggerheart-fear-macros](https://github.com/brunocalado/daggerheart-fear-macros)
+> Automatically executes macros when the Daggerheart system Fear resource is changed.
+
+### 🤖 [daggerheart-fear-macros](https://github.com/brunocalado/daggerheart-fear-macros)
+> Automatically executes macros when the Daggerheart system Fear resource is changed.
+
+### 🤖 [daggerheart-fear-macros](https://github.com/brunocalado/daggerheart-fear-macros)
+> Automatically executes macros when the Daggerheart system Fear resource is changed.
+
+## 🗺️ Adventures
+
+### 💣 [suicide-squad-daggerheart-adventure](https://github.com/brunocalado/suicide-squad-daggerheart-adventure)
+> Torn from your past lives, you are a squad of criminals forced to serve a ruthless master. A deadly curse ensures your obedience, turning you into disposable pawns for an impossible mission. You are tasked with hunting a target of unimaginable importance in a land on the brink of war. Operating in the shadows where every step is watched, you must fight for survival and decide whether to obey your orders or risk everything to change your fate.
+
+### ✨ [i-wish-daggerheart-adventure](https://github.com/brunocalado/i-wish-daggerheart-adventure)
+> A wealthy merchant has been cursed and is doomed to die within a few weeks. The only hope of breaking the curse lies in a legendary artifact said to rest deep within a mountain. With time running out, the merchant is organizing one final expedition to retrieve the item—or die trying. He has summoned a group of remarkable individuals to undertake this perilous mission.
+
 
 ## 📜 Changelog
 
