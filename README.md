@@ -2,7 +2,7 @@
 
 Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Daggerheart system on Foundry VTT. This module is designed to integrate seamlessly with the game system, providing visual feedback for players and GMs alike.
 
-<video src="https://github.com/user-attachments/assets/e81c608f-982a-4c8d-8093-0d4c9576c966" 
+<video src="https://github.com/user-attachments/assets/8adcbf9a-2e8b-4f2c-a36f-bafd2f457316" 
        controls 
        width="720"
        autoplay 
@@ -16,7 +16,7 @@ Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Dagger
   - **Glow & Breath:** Active fear tokens pulse and breathe to draw attention.
   - **Tremor:** The bar shakes briefly when Fear increases, adding impact to the moment.
 - **Customizable:**
-  - **Themes:** Choose from various styles like Skull, Blood Drop, Stone, and more.
+  - **Themes:** Choose from various styles like **Nuclear**, **Ghost**, Skull, Blood Drop, Stone, and more.
   - **Size:** Easily switch between **Small**, **Normal**, and **Large** sizes to fit your screen.
   - **Width:** Adjust how wide the bar is.
 - **Drag & Drop:** Place the tracker anywhere on your screen. Positions are saved per user.
@@ -26,11 +26,12 @@ Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Dagger
 
 Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** tab.
 
-* **Theme:** Choose how the tracker looks.
+* **Theme:** Choose how the tracker looks. Now includes **Nuclear** and **Ghost** themes!
 * **Tracker Size:** Select **Small**, **Normal**, or **Large**. (Recommended: Normal).
 * **Tracker Bar Width:** Adjust the width in pixels.
 * **Pulse/Breathing Effects:** Enable or disable animations.
-* **Pulse Glow Color:** Pick a custom color for the glowing effect.
+* **Pulse Glow Color:** Pick a custom color for the glowing effect (outer glow).
+* **Active Pip Tint Color:** Apply a color tint to the active tokens (e.g., `red`, `#00ff00`). Uses multiply blending to dye the texture naturally.
 * **Custom Images:** If using the "Custom" theme, you can upload your own images here.
 * **Hide System Bar:** Automatically sets the Daggerheart system's Fear bar setting to 'hide' to avoid visual clutter and duplication.
 
@@ -79,12 +80,6 @@ FearTracker.Reset(100, 100);
 
 ### 💀 [daggerheart-death-moves](https://github.com/brunocalado/daggerheart-death-moves)
 > Enhances the Death Move moment with immersive audio, visual effects, and a dramatic interface for choosing between Avoid Death, Blaze of Glory, or Risk it All.
-
-### 🤖 [daggerheart-fear-macros](https://github.com/brunocalado/daggerheart-fear-macros)
-> Automatically executes macros when the Daggerheart system Fear resource is changed.
-
-### 🤖 [daggerheart-fear-macros](https://github.com/brunocalado/daggerheart-fear-macros)
-> Automatically executes macros when the Daggerheart system Fear resource is changed.
 
 ### 🤖 [daggerheart-fear-macros](https://github.com/brunocalado/daggerheart-fear-macros)
 > Automatically executes macros when the Daggerheart system Fear resource is changed.
