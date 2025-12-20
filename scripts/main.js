@@ -560,61 +560,40 @@ function applyPulseColor() {
 }
 
 /**
- * Checks client settings (including native localStorage) for the system's "displayFear" property
+ * Checks CONFIG.DH for the system's "displayFear" property
  * and sets it to "hide" if the "Hide System Bar" module setting is enabled.
  */
 async function checkAndHideSystemBar() {
     const shouldHide = game.settings.get(MODULE_ID, "hideSystemBar");
     if (!shouldHide) return;
 
-    // Use native localStorage which is standard across all browsers
-    const storageLength = localStorage.length;
+    // Safety check for Daggerheart System Config
+    if (typeof CONFIG.DH === "undefined") {
+        console.warn(`${MODULE_ID} | Daggerheart system config (CONFIG.DH) not found. Skipping system bar hide.`);
+        return;
+    }
 
-    for (let i = 0; i < storageLength; i++) {
-        const storageKey = localStorage.key(i);
-        // Only proceed if it looks relevant (basic check)
-        if (!storageKey) continue;
+    try {
+        const appearanceSettings = game.settings.get(
+            CONFIG.DH.id,
+            CONFIG.DH.SETTINGS.gameSettings.appearance
+        );
 
-        const storageValue = localStorage.getItem(storageKey);
-        
-        // Optimize: Check as string first to avoid unnecessary parsing
-        if (storageValue && storageValue.includes("displayFear")) {
-            
-            try {
-                const parsed = JSON.parse(storageValue);
-                
-                // Confirm structure
-                if (parsed && typeof parsed === 'object' && 'displayFear' in parsed) {
-                    
-                    if (parsed.displayFear !== 'hide') {
-                        // Update the object in memory
-                        parsed.displayFear = 'hide';
-                        
-                        // 1. Try Foundry API if it looks like a "namespace.key" setting
-                        let updatedViaAPI = false;
-                        if (storageKey.includes('.')) {
-                            const parts = storageKey.split('.');
-                            const namespace = parts[0];
-                            const key = parts.slice(1).join('.');
-                            
-                            try {
-                                await game.settings.set(namespace, key, parsed);
-                                updatedViaAPI = true;
-                            } catch (e) {
-                                // Fail silently on API error, fallback will handle it
-                            }
-                        }
+        if (appearanceSettings.displayFear === "hide") return;
 
-                        // 2. Fallback: Direct localStorage write if API failed or key format is non-standard
-                        if (!updatedViaAPI) {
-                            localStorage.setItem(storageKey, JSON.stringify(parsed));
-                        }
-                    }
-                }
-            } catch (err) {
-                // Not JSON or parse error, skip silently
-            }
-        }
+        // Criar uma cópia do objeto antes de modificar
+        const updatedSettings = foundry.utils.duplicate(appearanceSettings);
+        updatedSettings.displayFear = "hide";
+
+        await game.settings.set(
+            CONFIG.DH.id,
+            CONFIG.DH.SETTINGS.gameSettings.appearance,
+            updatedSettings
+        );
+        console.log(`${MODULE_ID} | Daggerheart System Fear Bar hidden automatically.`);
+
+    } catch (err) {
+        console.error(`${MODULE_ID} | Failed to hide system fear bar:`, err);
     }
 }
 
