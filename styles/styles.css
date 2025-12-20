@@ -72,6 +72,7 @@
     /* Vertical Offset (margin-top) is now handled in JS based on Size setting */
 }
 
+/* Standard Pip Image (and Tinted Div base) */
 .pip-img {
     position: absolute;
     width: 23px;
@@ -85,9 +86,49 @@
     will-change: transform, filter;
 }
 
-/* Static active state */
+/* .pip-active selector
+   This applies to both the simple <img> and the new Group Container (.pip-active-group).
+   The drop-shadow will apply to the whole group (image + tint).
+*/
 .pip-active {
     filter: drop-shadow(0 0 6px var(--fear-glow-color));
+    transition: opacity 1s ease, transform 0.2s; /* Add generic transition for group */
+    will-change: transform, filter, opacity;
+}
+
+/* TINTING SYSTEM 
+   Structure:
+   .pip-active-group (Container)
+      -> .pip-active-base (Original Image)
+      -> .pip-tint-layer (Color Overlay with Multiply)
+*/
+
+.pip-active-group {
+    position: absolute;
+    width: 23px;
+    height: 30px;
+    display: block;
+    transform-origin: center center;
+}
+
+.pip-active-base {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.pip-tint-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    
+    /* The magic: Multiply blends the color into the white parts of the image */
+    mix-blend-mode: multiply;
 }
 
 /* 1. Glow Animation (Pulse) */

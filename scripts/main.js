@@ -120,6 +120,7 @@ Hooks.once("ready", async () => {
         
         // Visual Changes
         if (setting.key === `${MODULE_ID}.pulseColor`) applyPulseColor();
+        if (setting.key === `${MODULE_ID}.pipTintColor`) reRender(); // Re-render on Tint Change
         if (setting.key === `${MODULE_ID}.enablePulse`) reRender();
         if (setting.key === `${MODULE_ID}.enableScaleAnimation`) reRender();
         
@@ -147,8 +148,6 @@ Hooks.once("ready", async () => {
 /* -------------------------------------------- */
 /* Logic: Tracker Rendering & Updates          */
 /* -------------------------------------------- */
-
-// Hoisted declarations
 
 async function updatePips(leftSideCount) {
     const totalPips = getMaxFearTokens();
@@ -179,7 +178,9 @@ function updateUI(leftSideCount, totalPips) {
         if (!wrapper) continue;
         
         const inactiveImg = wrapper.querySelector(".pip-inactive");
-        const activeImg = wrapper.querySelector(".pip-active");
+        
+        // Select active element (could be img or div group)
+        const activeEl = wrapper.querySelector(".pip-active");
 
         const isActive = i >= leftSideCount;
         let targetLeft;
@@ -195,7 +196,7 @@ function updateUI(leftSideCount, totalPips) {
         wrapper.style.left = `${targetLeft}px`;
         
         if (inactiveImg) inactiveImg.style.opacity = isActive ? "0" : "1";
-        if (activeImg) activeImg.style.opacity = isActive ? "1" : "0";
+        if (activeEl) activeEl.style.opacity = isActive ? "1" : "0";
     }
 }
 
@@ -217,6 +218,9 @@ function renderLargeTracker() {
     const sizeSetting = game.settings.get(MODULE_ID, "trackerSize");
     const sizeMap = { small: 0.6, normal: 1.0, large: 1.4 };
     const scale = sizeMap[sizeSetting] || 1.0;
+
+    // TINT SETTING
+    const pipTintColor = game.settings.get(MODULE_ID, "pipTintColor");
 
     // PIP ALIGNMENT SETTINGS (Dynamic Margin Top)
     const pipOffsets = {
@@ -277,18 +281,53 @@ function renderLargeTracker() {
         inactiveImg.src = inactiveSrc;
         inactiveImg.className = "pip-img pip-inactive";
 
-        const activeImg = document.createElement("img");
-        activeImg.src = activeSrc;
-        activeImg.className = "pip-img pip-active";
+        let activeElement;
+
+        // --- TINT LOGIC (BLENDING) ---
+        // If a tint color is set, we use a CONTAINER Group.
+        // Inside: Original Image + Tint Layer (using mix-blend-mode)
+        if (pipTintColor && pipTintColor.trim() !== "") {
+            // Create Container Group
+            activeElement = document.createElement("div");
+            activeElement.className = "pip-active-group pip-active"; // 'pip-active' allows standard selectors to work
+
+            // 1. The Base Image (Original Texture)
+            const baseImg = document.createElement("img");
+            baseImg.src = activeSrc;
+            baseImg.className = "pip-img pip-active-base"; // Helper class for filling container
+            
+            // 2. The Tint Layer (Color Overlay)
+            const tintLayer = document.createElement("div");
+            tintLayer.className = "pip-tint-layer";
+            tintLayer.style.backgroundColor = pipTintColor;
+            
+            // Mask the tint layer to the image shape so color doesn't spill outside
+            tintLayer.style.maskImage = `url(${activeSrc})`;
+            tintLayer.style.webkitMaskImage = `url(${activeSrc})`;
+            tintLayer.style.maskSize = "contain";
+            tintLayer.style.webkitMaskSize = "contain";
+            tintLayer.style.maskRepeat = "no-repeat";
+            tintLayer.style.webkitMaskRepeat = "no-repeat";
+            tintLayer.style.maskPosition = "center";
+            tintLayer.style.webkitMaskPosition = "center";
+
+            activeElement.appendChild(baseImg);
+            activeElement.appendChild(tintLayer);
+        } else {
+            // Default behavior: Standard Image
+            activeElement = document.createElement("img");
+            activeElement.src = activeSrc;
+            activeElement.className = "pip-img pip-active";
+        }
         
-        // Apply animation classes
-        if (enablePulse) activeImg.classList.add("pulse");
-        if (enableScaleAnim) activeImg.classList.add("breathing");
+        // Apply animation classes to the top-level active element (img or group)
+        if (enablePulse) activeElement.classList.add("pulse");
+        if (enableScaleAnim) activeElement.classList.add("breathing");
         
-        activeImg.style.opacity = "0";
+        activeElement.style.opacity = "0";
 
         pipWrapper.appendChild(inactiveImg);
-        pipWrapper.appendChild(activeImg);
+        pipWrapper.appendChild(activeElement);
         pipContainer.appendChild(pipWrapper);
     }
 
@@ -610,15 +649,26 @@ function registerSettings() {
         scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
     });
 
-    // Text field for CSS color
+    // Pulse Glow Color
     game.settings.register(MODULE_ID, "pulseColor", {
         name: "Pulse Glow Color", 
-        hint: "Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)).",
+        hint: "Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)). Controls the outer glow.",
         scope: "world", 
         config: true, 
         type: String, 
         default: "#6a0dad",
         onChange: () => applyPulseColor()
+    });
+
+    // --- NEW SETTING: Pip Tint Color ---
+    game.settings.register(MODULE_ID, "pipTintColor", {
+        name: "Active Pip Tint Color", 
+        hint: "Enter CSS color (e.g. red, #ff0000). If set, this adds a color tint layer over the image using Blend Mode Multiply (best for coloring textures). Leave empty for original image.",
+        scope: "world", 
+        config: true, 
+        type: String, 
+        default: "",
+        onChange: () => reRender()
     });
 
     // Breathing Effect (Scale)

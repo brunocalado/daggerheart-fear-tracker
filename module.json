@@ -13,10 +13,17 @@
   "scripts": [
     "scripts/main.js"
   ],
+
+	"media": [{
+		"type": "setup",
+		"url": "modules/daggerheart-fear-tracker/images/thumbnail.webp",
+		"thumbnail": "modules/daggerheart-fear-tracker/images/thumbnail.webp"
+	}],   
+  
   "esmodules": [],
-  "packs": [],
+
   "languages": [],
-  "socket": true,
+  
   "url": "https://github.com/brunocalado/daggerheart-fear-tracker",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-fear-tracker/main/module.json",
   "download": "https://codeload.github.com/brunocalado/daggerheart-fear-tracker/zip/main",
