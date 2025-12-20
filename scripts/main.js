@@ -128,6 +128,9 @@ Hooks.once("ready", async () => {
 
         // Check system bar visibility
         if (setting.key === `${MODULE_ID}.hideSystemBar`) checkAndHideSystemBar();
+        
+        // Re-render on Theme change
+        if (setting.key === `${MODULE_ID}.theme`) reRender();
     });
 
     // Resize listener with Debounce
@@ -591,6 +594,8 @@ function registerSettings() {
             "custom": "Custom",
             "demon": "Demon",
             "fire": "Fire",
+            "ghost": "Ghost",
+            "nuclear": "Nuclear",
             "skull": "Skull",
             "stone": "Stone",
             "stone-red": "Stone Red"
