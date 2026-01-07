@@ -10,6 +10,9 @@ const SYSTEM_HOMEBREW_SETTING = "Homebrew";
 
 const VISIBILITY_SETTING = "trackerVisible_v3"; 
 
+// Global timer for Auto-Hide mode
+let _autoHideTimer = null;
+
 /* -------------------------------------------- */
 /* Hooks & Initialization                      */
 /* -------------------------------------------- */
@@ -23,7 +26,7 @@ Hooks.once("ready", async () => {
     try {
         applyPulseColor();
         
-        // Ensure initial visibility for GM
+        // Ensure initial visibility for GM if using button mode
         if (game.user.isGM) {
             const isVisible = game.settings.get(MODULE_ID, VISIBILITY_SETTING);
             if (!isVisible) {
@@ -135,6 +138,9 @@ Hooks.once("ready", async () => {
         
         // Re-render on Button Theme change
         if (setting.key === `${MODULE_ID}.buttonTheme`) reRender();
+
+        // Re-render on Visibility Mode change
+        if (setting.key === `${MODULE_ID}.visibilityMode`) reRender();
     });
 
     // Resize listener with Debounce
@@ -157,6 +163,9 @@ async function updatePips(leftSideCount) {
     const activeCount = totalPips - leftSideCount;
 
     updateUI(leftSideCount, totalPips);
+
+    // If auto mode is enabled, any update should wake up the tracker
+    refreshAutoVisibility();
 
     if (game.user.isGM) {
         syncSystemFromTracker(activeCount);
@@ -225,6 +234,9 @@ function renderLargeTracker() {
     // TINT SETTING
     const pipTintColor = game.settings.get(MODULE_ID, "pipTintColor");
 
+    // VISIBILITY MODE
+    const visibilityMode = game.settings.get(MODULE_ID, "visibilityMode"); // none, button, auto
+
     // PIP ALIGNMENT SETTINGS (Dynamic Margin Top)
     const pipOffsets = {
         small: "-1px",
@@ -246,8 +258,15 @@ function renderLargeTracker() {
     
     if (scale !== 1.0) container.style.transform = `scale(${scale})`;
     
-    const visible = game.settings.get(MODULE_ID, VISIBILITY_SETTING);
-    container.style.opacity = visible ? "1" : (isGM ? "0.5" : "0");
+    // Initial Visibility State Logic
+    if (visibilityMode === "none" || visibilityMode === "auto") {
+        // Always start visible
+        container.style.opacity = "1";
+    } else {
+        // 'button' mode: respect the legacy toggle setting
+        const visible = game.settings.get(MODULE_ID, VISIBILITY_SETTING);
+        container.style.opacity = visible ? "1" : (isGM ? "0.5" : "0");
+    }
 
     const sliderWrapper = document.createElement("div");
     sliderWrapper.className = "fear-slider-wrapper";
@@ -340,12 +359,16 @@ function renderLargeTracker() {
     if (isGM) {
         const minus = createControlBtn("minus", () => modifyCount(1)); 
         const plus = createControlBtn("plus", () => modifyCount(-1));
-        const eye = createVisibilityBtn();
         
         sliderWrapper.appendChild(minus);
         sliderWrapper.appendChild(slider);
         sliderWrapper.appendChild(plus);
-        sliderWrapper.appendChild(eye);
+
+        // Only add visibility button if mode is "button"
+        if (visibilityMode === "button") {
+            const eye = createVisibilityBtn();
+            sliderWrapper.appendChild(eye);
+        }
     } else {
         sliderWrapper.appendChild(slider);
     }
@@ -353,6 +376,20 @@ function renderLargeTracker() {
     container.appendChild(sliderWrapper);
     setupDrag(container, "largeTrackerPosition");
     document.body.appendChild(container);
+
+    // Auto Mode Logic: Add Listeners for wake-up
+    if (visibilityMode === "auto") {
+        // Any interaction resets the timer and shows the bar
+        container.addEventListener("mouseenter", refreshAutoVisibility);
+        container.addEventListener("mousemove", () => {
+            // Simple throttle by nature of function logic (clears timeout)
+            refreshAutoVisibility();
+        });
+        container.addEventListener("click", refreshAutoVisibility);
+        
+        // Start the timer cycle immediately
+        refreshAutoVisibility();
+    }
     
     // Initial update
     updateUI(leftSideCount, totalPips);
@@ -430,6 +467,13 @@ function createVisibilityBtn(sizeClass = "") {
 }
 
 function toggleVisibilityUI() {
+    // If mode is NOT button, ignore manual toggles logic (unless forced)
+    // But since this is called by Socket, we should respect it if we are in 'button' mode.
+    // If we are in 'none' or 'auto', we ignore external visibility toggles
+    // because those modes control their own opacity.
+    const mode = game.settings.get(MODULE_ID, "visibilityMode");
+    if (mode !== "button") return;
+
     const visible = game.settings.get(MODULE_ID, VISIBILITY_SETTING);
     const opacity = visible ? "1" : (game.user.isGM ? "0.5" : "0");
     const iconClass = visible ? "fas fa-eye" : "fas fa-eye-slash";
@@ -478,6 +522,27 @@ function setupDrag(tracker, settingKey) {
 /* -------------------------------------------- */
 /* Helpers & Sync Logic                        */
 /* -------------------------------------------- */
+
+function refreshAutoVisibility() {
+    const mode = game.settings.get(MODULE_ID, "visibilityMode");
+    if (mode !== "auto") return;
+
+    const el = document.getElementById("fear-tracker-container");
+    if (!el) return;
+
+    // Show immediately
+    el.style.opacity = "1";
+
+    // Clear any pending fade
+    if (_autoHideTimer) clearTimeout(_autoHideTimer);
+
+    // Set new fade timer (10 seconds)
+    _autoHideTimer = setTimeout(() => {
+        // Logic for "Reduced Visibility":
+        // Reduced to 0.5 (Dimmed) for EVERYONE (Players and GM)
+        el.style.opacity = "0.5";
+    }, 10000);
+}
 
 function getMaxFearTokens() {
     const DEFAULT_MAX = 12;
@@ -659,6 +724,22 @@ function registerSettings() {
             "squared-yp-white": "Squared (White)"
         },
         default: "match-theme",
+        onChange: () => reRender()
+    });
+
+    // --- NEW SETTING: Visibility Mode ---
+    game.settings.register(MODULE_ID, "visibilityMode", {
+        name: "Visibility Behavior",
+        hint: "Select how the tracker visibility is handled. 'None': Always visible (default). 'Button': Toggle visibility manually. 'Auto': Hides after 10s of inactivity.",
+        scope: "world",
+        config: true,
+        type: String,
+        choices: {
+            "none": "None (Always Visible)",
+            "button": "Toggle Button",
+            "auto": "Auto-Hide (10s)"
+        },
+        default: "none",
         onChange: () => reRender()
     });
 
