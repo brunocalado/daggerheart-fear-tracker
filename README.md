@@ -17,16 +17,22 @@ Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Dagger
   - **Tremor:** The bar shakes briefly when Fear increases, adding impact to the moment.
 - **Customizable:**
   - **Themes:** Choose from various styles like **Nuclear**, **Ghost**, Skull, Blood Drop, Stone, and more.
-  - **Size:** Easily switch between **Small**, **Normal**, and **Large** sizes to fit your screen.
-  - **Width:** Adjust how wide the bar is.
+  - **Button Styles:** Select specific designs for control buttons (Standard, Round, Squared) or match the main theme.
+  - **Size & Width:** Easily switch between **Small**, **Normal**, and **Large** sizes and adjust the width to fit your screen.
+  - **Tinting:** Apply color tints to active pips to match specific aesthetics using blend modes.
 - **Drag & Drop:** Place the tracker anywhere on your screen. Positions are saved per user.
-- **Visibility Control:** The GM can toggle visibility for everyone. Players can also hide it locally for themselves if needed.
+- **Visibility Modes:** Choose how the tracker is displayed: always visible, manually toggled via a button, or automatically hidden after inactivity.
 
 ## Configuration
 
 Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** tab.
 
-* **Theme:** Choose how the tracker looks. Now includes **Nuclear** and **Ghost** themes!
+* **Theme:** Choose how the tracker looks. Includes **Nuclear**, **Ghost**, **Stone**, and more.
+* **Buttons Theme:** Choose a specific style for the +/- buttons (e.g., Round, Squared) or use Custom images defined by the GM.
+* **Visibility Behavior:** Select the visibility logic:
+  * **None:** Always visible.
+  * **Toggle Button:** Shows an eye icon to manually toggle visibility.
+  * **Auto-Hide:** Automatically reduces visibility after 10 seconds of inactivity.
 * **Tracker Size:** Select **Small**, **Normal**, or **Large**. (Recommended: Normal).
 * **Tracker Bar Width:** Adjust the width in pixels.
 * **Pulse/Breathing Effects:** Enable or disable animations.
