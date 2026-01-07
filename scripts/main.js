@@ -132,6 +132,9 @@ Hooks.once("ready", async () => {
         
         // Re-render on Theme change
         if (setting.key === `${MODULE_ID}.theme`) reRender();
+        
+        // Re-render on Button Theme change
+        if (setting.key === `${MODULE_ID}.buttonTheme`) reRender();
     });
 
     // Resize listener with Debounce
@@ -539,6 +542,8 @@ async function syncSystemFromTracker(activeFearValue) {
 
 function getThemeAsset(type) {
     const theme = game.settings.get(MODULE_ID, "theme");
+    const buttonTheme = game.settings.get(MODULE_ID, "buttonTheme");
+
     const fileMap = {
         slider: "slider.png", pipActive: "pip-active.png", pipInactive: "pip-inactive.png", minus: "minus.png", plus: "plus.png"
     };
@@ -546,6 +551,21 @@ function getThemeAsset(type) {
         slider: "sliderImage", pipActive: "pipActiveImage", pipInactive: "pipInactiveImage", minus: "minusImage", plus: "plusImage"
     };
 
+    // --- BUTTON OVERRIDE LOGIC ---
+    // If we are looking for a button (minus/plus)
+    if (type === "minus" || type === "plus") {
+        // Option 1: User explicitly selected "Custom (Use GM Images)" for buttons
+        if (buttonTheme === "custom") {
+             if (customSettingMap[type]) return game.settings.get(MODULE_ID, customSettingMap[type]);
+        }
+        // Option 2: User selected a specific preset button theme
+        else if (buttonTheme && buttonTheme !== "match-theme") {
+            return `modules/${MODULE_ID}/images/buttons/${buttonTheme}/${fileMap[type]}`;
+        }
+        // Option 3: "match-theme" -> Falls through to standard logic below
+    }
+
+    // --- STANDARD THEME LOGIC ---
     if (theme === "custom") {
         if (customSettingMap[type]) return game.settings.get(MODULE_ID, customSettingMap[type]);
         return `modules/${MODULE_ID}/images/stone/${fileMap[type]}`;
@@ -619,6 +639,26 @@ function registerSettings() {
             "stone-red": "Stone Red"
         },
         default: "skull",
+        onChange: () => reRender()
+    });
+
+    // --- BUTTON THEME SELECTION ---
+    game.settings.register(MODULE_ID, "buttonTheme", {
+        name: "Buttons Theme",
+        hint: "Choose a specific style for the +/- buttons, or match the main theme.",
+        scope: "world",
+        config: true,
+        type: String,
+        choices: {
+            "match-theme": "Match Main Theme",
+            "custom": "Custom (Use GM Images)",
+            "standard": "Standard",
+            "round-yp": "Round",
+            "round-yp-white": "Round (White)",
+            "squared-yp": "Squared",
+            "squared-yp-white": "Squared (White)"
+        },
+        default: "match-theme",
         onChange: () => reRender()
     });
 
