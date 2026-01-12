@@ -236,3 +236,9 @@
     justify-content: center;
     align-items: center;
 }
+
+/* Force Hide System Bar Backup */
+/* Aplica-se apenas quando a classe é adicionada via JS ao body */
+body.dh-ft-hide-system-bar #resources:not(:hover):not(.minimized) {
+    display: none !important;
+}

@@ -1,3 +1,6 @@
+# 1.0.8
+- Use also CSS to remove the system bar 
+
 # 1.0.7
 - Should fix: https://github.com/brunocalado/daggerheart-fear-tracker/issues/3
 

@@ -599,7 +599,16 @@ function applyPulseColor() {
 
 async function checkAndHideSystemBar() {
     const shouldHide = game.settings.get(MODULE_ID, "hideSystemBar");
-    if (!shouldHide) return;
+
+    // Toggle CSS Class for robust backup
+    if (shouldHide) {
+        document.body.classList.add("dh-ft-hide-system-bar");
+    } else {
+        document.body.classList.remove("dh-ft-hide-system-bar");
+        return; // Stop if disabled
+    }
+
+    // Existing System Setting Logic
     if (typeof CONFIG.DH === "undefined") return;
 
     try {
