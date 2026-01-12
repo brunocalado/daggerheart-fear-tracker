@@ -22,14 +22,14 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("ready", async () => {
-    // Safe Initialization
     try {
         applyPulseColor();
         
         // Ensure initial visibility for GM if using button mode
         if (game.user.isGM) {
             const isVisible = game.settings.get(MODULE_ID, VISIBILITY_SETTING);
-            if (!isVisible) {
+            // If undefined or false, force true for safety on first load logic
+            if (isVisible === undefined) {
                 await game.settings.set(MODULE_ID, VISIBILITY_SETTING, true);
             }
         }
@@ -37,173 +37,214 @@ Hooks.once("ready", async () => {
         // Initialize bar
         initializeTracker();
 
-        // Automatically hide system bar if setting enabled
-        // Delay slightly to ensure system settings are fully loaded
+        // Check system bar hiding
         setTimeout(() => {
             checkAndHideSystemBar();
         }, 1000);
 
         // --- EXPOSE API ---
         window.FearTracker = {
-            /**
-             * Resets the Fear Tracker position.
-             * Default behavior: Centers horizontally at the top of the screen.
-             * @param {number|null} x - Specific Left position. If null, centers horizontally.
-             * @param {number|null} y - Specific Top position. If null, defaults to 100px.
-             */
             Reset: async (x = null, y = null) => {
-                try {
-                    const el = document.getElementById("fear-tracker-container");
-                    if (!el) return;
+                const el = document.getElementById("fear-tracker-container");
+                if (!el) return;
+                
+                // Defaults
+                const sizeSetting = game.settings.get(MODULE_ID, "trackerSize");
+                const sizeMap = { small: 0.6, normal: 1.0, large: 1.4 };
+                const scale = sizeMap[sizeSetting] || 1.0;
+                const visualWidth = el.offsetWidth * scale;
 
-                    // Get current scale to calculate visual width
-                    const sizeSetting = game.settings.get(MODULE_ID, "trackerSize");
-                    const sizeMap = { small: 0.6, normal: 1.0, large: 1.4 };
-                    const scale = sizeMap[sizeSetting] || 1.0;
+                let leftVal = x !== null ? (typeof x === "number" ? `${x}px` : x) : `${Math.max(0, (window.innerWidth / 2) - (visualWidth / 2))}px`;
+                let topVal = y !== null ? (typeof y === "number" ? `${y}px` : y) : "100px";
 
-                    // Calculate visual width
-                    const visualWidth = el.offsetWidth * scale;
-
-                    // Determine positions
-                    let leftVal, topVal;
-
-                    if (x !== null) {
-                        leftVal = typeof x === "number" ? `${x}px` : x;
-                    } else {
-                        // Calculate Center: (Window Width / 2) - (Tracker Visual Width / 2)
-                        const centeredX = (window.innerWidth / 2) - (visualWidth / 2);
-                        leftVal = `${Math.max(0, centeredX)}px`;
-                    }
-
-                    if (y !== null) {
-                        topVal = typeof y === "number" ? `${y}px` : y;
-                    } else {
-                        topVal = "100px"; // Default top padding
-                    }
-
-                    const newPos = { left: leftVal, top: topVal };
-
-                    // 1. Save setting
-                    await game.settings.set(MODULE_ID, "largeTrackerPosition", newPos);
-                    
-                    // 2. Direct DOM update
-                    el.style.left = newPos.left;
-                    el.style.top = newPos.top;
-                    
-                    ui.notifications.info(`Daggerheart Fear Tracker: Reset to Top Center.`);
-                } catch (err) {
-                    console.error("FearTracker API Error:", err);
-                    ui.notifications.warn("Could not reset Fear Tracker position.");
-                }
+                const newPos = { left: leftVal, top: topVal };
+                await game.settings.set(MODULE_ID, "largeTrackerPosition", newPos);
+                
+                el.style.left = newPos.left;
+                el.style.top = newPos.top;
+                ui.notifications.info(`Daggerheart Fear Tracker: Reset to Top Center.`);
             }
         };
         
     } catch (err) {
         console.error("Daggerheart Fear Tracker | Initialization Error:", err);
     }
-
-    // Settings Listeners
-    Hooks.on("updateSetting", (setting, value, options, userId) => {
-        // System Fear Resource Change
-        if (setting.key === `${SYSTEM_ID}.${SYSTEM_FEAR_SETTING}`) {
-            let fearValue = value;
-            if (typeof value === 'object' && value !== null && 'value' in value) {
-                fearValue = value.value;
-            }
-            const numericValue = Number(fearValue);
-            if (!isNaN(numericValue)) {
-                syncTrackerFromSystem(numericValue);
-            }
-        }
-
-        // Homebrew (Max Fear) Change
-        if (setting.key === `${SYSTEM_ID}.${SYSTEM_HOMEBREW_SETTING}`) {
-            reRender();
-        }
-        
-        // Visual Changes
-        if (setting.key === `${MODULE_ID}.pulseColor`) applyPulseColor();
-        if (setting.key === `${MODULE_ID}.pipTintColor`) reRender(); // Re-render on Tint Change
-        if (setting.key === `${MODULE_ID}.enablePulse`) reRender();
-        if (setting.key === `${MODULE_ID}.enableScaleAnimation`) reRender();
-        
-        // Re-render on Size change
-        if (setting.key === `${MODULE_ID}.trackerSize`) reRender();
-
-        // Check system bar visibility
-        if (setting.key === `${MODULE_ID}.hideSystemBar`) checkAndHideSystemBar();
-        
-        // Re-render on Theme change
-        if (setting.key === `${MODULE_ID}.theme`) reRender();
-        
-        // Re-render on Button Theme change
-        if (setting.key === `${MODULE_ID}.buttonTheme`) reRender();
-
-        // Re-render on Visibility Mode change
-        if (setting.key === `${MODULE_ID}.visibilityMode`) reRender();
-    });
-
-    // Resize listener with Debounce
-    let resizeTimeout;
-    window.addEventListener("resize", () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            const slider = document.getElementById("slider-bar");
-            if (slider) reRender();
-        }, 200);
-    });
 });
 
 /* -------------------------------------------- */
-/* Logic: Tracker Rendering & Updates          */
+/* Settings Sync Logic (The Brain)             */
 /* -------------------------------------------- */
 
-async function updatePips(leftSideCount) {
+Hooks.on("updateSetting", (setting, change, options, userId) => {
+    // 1. Module Internal Count Changed -> Update UI for everyone
+    if (setting.key === `${MODULE_ID}.leftSideCount`) {
+        const newValue = (change && typeof change.value !== 'undefined') ? change.value : game.settings.get(MODULE_ID, "leftSideCount");
+        
+        // Update the visual UI
+        updatePips(newValue);
+
+        // If I am the GM, I must ensure the System stays in sync with this module change
+        if (game.user.isGM) {
+            const totalPips = getMaxFearTokens();
+            const activeFear = totalPips - newValue;
+            syncSystemFromTracker(activeFear);
+        }
+    }
+
+    // 2. System Fear Resource Changed -> Update Module Internal Count
+    if (setting.key === `${SYSTEM_ID}.${SYSTEM_FEAR_SETTING}`) {
+        // Handle both object {value: x} and direct number formats
+        let fearValue = (change && typeof change.value !== 'undefined') ? change.value : game.settings.get(SYSTEM_ID, SYSTEM_FEAR_SETTING);
+        
+        if (typeof fearValue === 'object' && fearValue !== null && 'value' in fearValue) {
+            fearValue = fearValue.value;
+        }
+
+        const numericValue = Number(fearValue);
+        if (!isNaN(numericValue)) {
+            syncTrackerFromSystem(numericValue);
+        }
+    }
+
+    // 3. Visibility Toggled
+    if (setting.key === `${MODULE_ID}.${VISIBILITY_SETTING}`) {
+        toggleVisibilityUI();
+    }
+
+    // 4. Other Visual Settings
+    if (setting.key.startsWith(MODULE_ID)) {
+        if (setting.key.includes("pulseColor")) applyPulseColor();
+        else if (setting.key.includes("pipTintColor") || 
+                 setting.key.includes("enablePulse") || 
+                 setting.key.includes("enableScaleAnimation") || 
+                 setting.key.includes("trackerSize") || 
+                 setting.key.includes("theme") || 
+                 setting.key.includes("buttonTheme") || 
+                 setting.key.includes("visibilityMode")) {
+            reRender();
+        }
+        else if (setting.key.includes("hideSystemBar")) {
+            checkAndHideSystemBar();
+        }
+    }
+});
+
+// Resize listener
+let resizeTimeout;
+window.addEventListener("resize", () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (document.getElementById("slider-bar")) reRender();
+    }, 200);
+});
+
+/* -------------------------------------------- */
+/* Logic: Sync Functions                       */
+/* -------------------------------------------- */
+
+// Called when System Setting changes. Updates Module Setting.
+async function syncTrackerFromSystem(systemFearValue) {
+    const maxTokens = getMaxFearTokens();
+    const safeFear = Math.max(0, Math.min(systemFearValue, maxTokens));
+    const newLeftSide = maxTokens - safeFear;
+    
+    // Check current value to avoid infinite loops
+    const currentLeftSide = game.settings.get(MODULE_ID, "leftSideCount");
+
+    if (newLeftSide !== currentLeftSide) {
+        // Only GM needs to write the setting to the DB. 
+        // Players will receive the update via Hook when GM writes it.
+        // However, if we want the UI to be responsive for players even if GM is offline (rare for system sync), 
+        // we usually rely on GM. For safety, we only set if GM.
+        if (game.user.isGM) {
+             await game.settings.set(MODULE_ID, "leftSideCount", newLeftSide);
+        } 
+        // Note: We do NOT call updatePips here directly for players. 
+        // We wait for the 'updateSetting' hook of 'leftSideCount' to trigger.
+    }
+}
+
+// Called when Module Setting changes. Updates System Setting.
+async function syncSystemFromTracker(activeFearValue) {
+    if (!game.user.isGM) return; // Only GM writes to System
+
+    if (game.settings.settings.has(`${SYSTEM_ID}.${SYSTEM_FEAR_SETTING}`)) {
+        const currentSetting = game.settings.get(SYSTEM_ID, SYSTEM_FEAR_SETTING);
+        
+        let currentValue;
+        if (typeof currentSetting === 'object' && currentSetting !== null && 'value' in currentSetting) {
+            currentValue = currentSetting.value;
+        } else {
+            currentValue = currentSetting;
+        }
+
+        // Only update if different to prevent loops
+        if (Number(currentValue) !== activeFearValue) {
+            let valueToSave = activeFearValue;
+            
+            // Preserve object structure if system uses it
+            if (typeof currentSetting === 'object' && currentSetting !== null && 'value' in currentSetting) {
+                valueToSave = foundry.utils.deepClone(currentSetting);
+                valueToSave.value = activeFearValue;
+            }
+
+            await game.settings.set(SYSTEM_ID, SYSTEM_FEAR_SETTING, valueToSave);
+        }
+    }
+}
+
+/* -------------------------------------------- */
+/* Logic: Rendering & UI Updates               */
+/* -------------------------------------------- */
+
+function updatePips(leftSideCount) {
+    // Robust safety check
+    if (leftSideCount === undefined || leftSideCount === null || isNaN(leftSideCount)) return;
+
     const totalPips = getMaxFearTokens();
     const activeCount = totalPips - leftSideCount;
 
     updateUI(leftSideCount, totalPips);
-
-    // If auto mode is enabled, any update should wake up the tracker
     refreshAutoVisibility();
-
-    if (game.user.isGM) {
-        syncSystemFromTracker(activeCount);
-    }
 }
 
 function updateUI(leftSideCount, totalPips) {
     const slider = document.getElementById("slider-bar");
     if (!slider) return;
 
-    // Check DOM integrity
     const currentPipsDom = document.querySelectorAll(".pip-wrapper");
+    // If pip count mismatch (e.g. max fear changed), full re-render
     if (currentPipsDom.length !== totalPips) {
         reRender();
         return;
     }
 
     const activeCount = totalPips - leftSideCount;
+    const sliderWidth = slider.clientWidth;
 
     for (let i = 0; i < totalPips; i++) {
         const wrapper = currentPipsDom[i];
         if (!wrapper) continue;
         
         const inactiveImg = wrapper.querySelector(".pip-inactive");
-        
-        // Select active element (could be img or div group)
         const activeEl = wrapper.querySelector(".pip-active");
 
         const isActive = i >= leftSideCount;
         let targetLeft;
         
         if (isActive) {
+            // Right Side (Active) logic
             const activeIndex = i - leftSideCount;
-            const startX = slider.clientWidth - (activeCount * 28) - 15;
+            // Calculation: (Total Width) - (Space for all active pips) - Padding
+            const startX = sliderWidth - (activeCount * 28) - 15;
             targetLeft = startX + (activeIndex * 28);
         } else {
+            // Left Side (Inactive) logic
             targetLeft = i * 28 + 15;
         }
+
+        // Safety against NaN
+        if (isNaN(targetLeft)) targetLeft = 0;
 
         wrapper.style.left = `${targetLeft}px`;
         
@@ -219,55 +260,39 @@ function reRender() {
 }
 
 function renderLargeTracker() {
-    // Check local hide setting
-    const localHide = game.settings.get(MODULE_ID, "hideTrackerClient");
-    if (localHide) return;
+    if (game.settings.get(MODULE_ID, "hideTrackerClient")) return;
 
     const isGM = game.user.isGM;
     const pos = game.settings.get(MODULE_ID, "largeTrackerPosition");
-    
-    // SCALE SETTINGS
     const sizeSetting = game.settings.get(MODULE_ID, "trackerSize");
     const sizeMap = { small: 0.6, normal: 1.0, large: 1.4 };
     const scale = sizeMap[sizeSetting] || 1.0;
-
-    // TINT SETTING
     const pipTintColor = game.settings.get(MODULE_ID, "pipTintColor");
+    const visibilityMode = game.settings.get(MODULE_ID, "visibilityMode");
 
-    // VISIBILITY MODE
-    const visibilityMode = game.settings.get(MODULE_ID, "visibilityMode"); // none, button, auto
-
-    // PIP ALIGNMENT SETTINGS (Dynamic Margin Top)
-    const pipOffsets = {
-        small: "-1px",
-        normal: "-2px",
-        large: "-1px"
-    };
+    const pipOffsets = { small: "-1px", normal: "-2px", large: "-1px" };
     const pipMarginTop = pipOffsets[sizeSetting] || "4px";
 
     const preferredWidth = game.settings.get(MODULE_ID, "trackerWidth");
-    
-    // Calculate responsive width
     const maxAllowedWidth = (window.innerWidth / scale) - 40;
     const finalWidth = Math.min(preferredWidth, maxAllowedWidth);
 
+    // --- Container ---
     const container = document.createElement("div");
     container.id = "fear-tracker-container";
-    container.style.left = pos.left || "0";
-    container.style.top = pos.top || "0";
-    
+    container.style.left = pos.left || "100px";
+    container.style.top = pos.top || "100px";
     if (scale !== 1.0) container.style.transform = `scale(${scale})`;
     
-    // Initial Visibility State Logic
+    // Visibility Init
     if (visibilityMode === "none" || visibilityMode === "auto") {
-        // Always start visible
         container.style.opacity = "1";
     } else {
-        // 'button' mode: respect the legacy toggle setting
         const visible = game.settings.get(MODULE_ID, VISIBILITY_SETTING);
         container.style.opacity = visible ? "1" : (isGM ? "0.5" : "0");
     }
 
+    // --- Wrapper & Bar ---
     const sliderWrapper = document.createElement("div");
     sliderWrapper.className = "fear-slider-wrapper";
 
@@ -276,27 +301,22 @@ function renderLargeTracker() {
     slider.style.width = `${finalWidth}px`;
     slider.style.backgroundImage = `url(${getThemeAsset('slider')})`;
 
+    // --- Pips Generation ---
     const totalPips = getMaxFearTokens();
     let leftSideCount = game.settings.get(MODULE_ID, "leftSideCount");
-    
-    // Safety check
     if (leftSideCount > totalPips) leftSideCount = totalPips;
 
     const pipContainer = document.createElement("div");
     pipContainer.className = "pip-container";
-
+    
     const inactiveSrc = getThemeAsset('pipInactive');
     const activeSrc = getThemeAsset('pipActive');
-    
-    // Animation Settings
     const enablePulse = game.settings.get(MODULE_ID, "enablePulse");
     const enableScaleAnim = game.settings.get(MODULE_ID, "enableScaleAnimation");
 
     for (let i = 0; i < totalPips; i++) {
         const pipWrapper = document.createElement("div");
         pipWrapper.className = "pip-wrapper"; 
-        
-        // APPLY DYNAMIC MARGIN TOP
         pipWrapper.style.marginTop = pipMarginTop;
 
         const inactiveImg = document.createElement("img");
@@ -304,26 +324,16 @@ function renderLargeTracker() {
         inactiveImg.className = "pip-img pip-inactive";
 
         let activeElement;
-
-        // --- TINT LOGIC (BLENDING) ---
-        // If a tint color is set, we use a CONTAINER Group.
-        // Inside: Original Image + Tint Layer (using mix-blend-mode)
+        // Tint Logic
         if (pipTintColor && pipTintColor.trim() !== "") {
-            // Create Container Group
             activeElement = document.createElement("div");
-            activeElement.className = "pip-active-group pip-active"; // 'pip-active' allows standard selectors to work
-
-            // 1. The Base Image (Original Texture)
+            activeElement.className = "pip-active-group pip-active";
             const baseImg = document.createElement("img");
             baseImg.src = activeSrc;
-            baseImg.className = "pip-img pip-active-base"; // Helper class for filling container
-            
-            // 2. The Tint Layer (Color Overlay)
+            baseImg.className = "pip-img pip-active-base";
             const tintLayer = document.createElement("div");
             tintLayer.className = "pip-tint-layer";
             tintLayer.style.backgroundColor = pipTintColor;
-            
-            // Mask the tint layer to the image shape so color doesn't spill outside
             tintLayer.style.maskImage = `url(${activeSrc})`;
             tintLayer.style.webkitMaskImage = `url(${activeSrc})`;
             tintLayer.style.maskSize = "contain";
@@ -332,30 +342,25 @@ function renderLargeTracker() {
             tintLayer.style.webkitMaskRepeat = "no-repeat";
             tintLayer.style.maskPosition = "center";
             tintLayer.style.webkitMaskPosition = "center";
-
             activeElement.appendChild(baseImg);
             activeElement.appendChild(tintLayer);
         } else {
-            // Default behavior: Standard Image
             activeElement = document.createElement("img");
             activeElement.src = activeSrc;
             activeElement.className = "pip-img pip-active";
         }
         
-        // Apply animation classes to the top-level active element (img or group)
         if (enablePulse) activeElement.classList.add("pulse");
         if (enableScaleAnim) activeElement.classList.add("breathing");
-        
         activeElement.style.opacity = "0";
 
         pipWrapper.appendChild(inactiveImg);
         pipWrapper.appendChild(activeElement);
         pipContainer.appendChild(pipWrapper);
     }
-
     slider.appendChild(pipContainer);
 
-    // GM Controls
+    // --- Controls ---
     if (isGM) {
         const minus = createControlBtn("minus", () => modifyCount(1)); 
         const plus = createControlBtn("plus", () => modifyCount(-1));
@@ -364,7 +369,6 @@ function renderLargeTracker() {
         sliderWrapper.appendChild(slider);
         sliderWrapper.appendChild(plus);
 
-        // Only add visibility button if mode is "button"
         if (visibilityMode === "button") {
             const eye = createVisibilityBtn();
             sliderWrapper.appendChild(eye);
@@ -374,60 +378,47 @@ function renderLargeTracker() {
     }
 
     container.appendChild(sliderWrapper);
+    
+    // Attach Drag logic to container
     setupDrag(container, "largeTrackerPosition");
+    
     document.body.appendChild(container);
 
-    // Auto Mode Logic: Add Listeners for wake-up
+    // Auto visibility listeners
     if (visibilityMode === "auto") {
-        // Any interaction resets the timer and shows the bar
         container.addEventListener("mouseenter", refreshAutoVisibility);
-        container.addEventListener("mousemove", () => {
-            // Simple throttle by nature of function logic (clears timeout)
-            refreshAutoVisibility();
-        });
+        container.addEventListener("mousemove", refreshAutoVisibility);
         container.addEventListener("click", refreshAutoVisibility);
-        
-        // Start the timer cycle immediately
         refreshAutoVisibility();
     }
     
-    // Initial update
+    // Initial Positioning
     updateUI(leftSideCount, totalPips);
 }
 
 function initializeTracker() {
-    const isGM = game.user.isGM;
-
-    // Initial Sync
-    if (isGM && game.settings.settings.has(`${SYSTEM_ID}.${SYSTEM_FEAR_SETTING}`)) {
+    // Initial sync from System to ensure we start correct
+    if (game.user.isGM && game.settings.settings.has(`${SYSTEM_ID}.${SYSTEM_FEAR_SETTING}`)) {
         const settingValue = game.settings.get(SYSTEM_ID, SYSTEM_FEAR_SETTING);
         const numericValue = (typeof settingValue === 'object' && settingValue !== null && 'value' in settingValue) 
             ? settingValue.value 
             : settingValue;
             
         if (!isNaN(Number(numericValue))) {
-            syncTrackerFromSystem(Number(numericValue));
+            const max = getMaxFearTokens();
+            const left = max - Number(numericValue);
+            // We set local variable manually or update setting if extremely off
+            // But let's just trigger a re-render
         }
     }
-
     reRender();
-
-    // Socket listeners
-    game.socket.on(`module.${MODULE_ID}`, (payload) => {
-        if (payload.type === "updatePips") {
-            updatePips(payload.leftSideCount);
-        }
-        if (payload.type === "toggleVisibility") {
-            toggleVisibilityUI();
-        }
-    });
 }
 
 /* -------------------------------------------- */
-/* Logic: User Interaction                     */
+/* User Interaction                            */
 /* -------------------------------------------- */
 
-function modifyCount(delta) {
+async function modifyCount(delta) {
     if (!game.user.isGM) return;
     let current = game.settings.get(MODULE_ID, "leftSideCount");
     const max = getMaxFearTokens();
@@ -437,9 +428,8 @@ function modifyCount(delta) {
     if (next > max) next = max;
 
     if (next !== current) {
-        game.settings.set(MODULE_ID, "leftSideCount", next);
-        updatePips(next);
-        game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: next });
+        // This triggers the Hook loop which updates UI and System
+        await game.settings.set(MODULE_ID, "leftSideCount", next);
     }
 }
 
@@ -447,7 +437,20 @@ function createControlBtn(type, onClick, sizeClass = "") {
     const img = document.createElement("img");
     img.src = getThemeAsset(type);
     img.className = `control-btn ${sizeClass}`;
-    img.onclick = onClick;
+    
+    // STOP PROPAGATION IS CRITICAL HERE
+    // Prevents the "Drag" event from the parent container firing when clicking the button
+    img.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+    });
+    
+    img.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onClick();
+    });
+
     return img;
 }
 
@@ -456,21 +459,23 @@ function createVisibilityBtn(sizeClass = "") {
     const isVisible = game.settings.get(MODULE_ID, VISIBILITY_SETTING);
     eye.className = `${isVisible ? "fas fa-eye" : "fas fa-eye-slash"} visibility-icon ${sizeClass}`;
     
-    eye.onclick = () => {
+    // STOP PROPAGATION HERE TOO
+    eye.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+    });
+
+    eye.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         if (!game.user.isGM) return;
         const newState = !game.settings.get(MODULE_ID, VISIBILITY_SETTING);
-        game.settings.set(MODULE_ID, VISIBILITY_SETTING, newState);
-        toggleVisibilityUI();
-        game.socket.emit(`module.${MODULE_ID}`, { type: "toggleVisibility" });
-    };
+        await game.settings.set(MODULE_ID, VISIBILITY_SETTING, newState);
+    });
     return eye;
 }
 
 function toggleVisibilityUI() {
-    // If mode is NOT button, ignore manual toggles logic (unless forced)
-    // But since this is called by Socket, we should respect it if we are in 'button' mode.
-    // If we are in 'none' or 'auto', we ignore external visibility toggles
-    // because those modes control their own opacity.
     const mode = game.settings.get(MODULE_ID, "visibilityMode");
     if (mode !== "button") return;
 
@@ -488,58 +493,56 @@ function toggleVisibilityUI() {
 
 function setupDrag(tracker, settingKey) {
     let offset = { x: 0, y: 0 };
+    let isDragging = false;
     
     function onMouseMove(event) {
+        if (!isDragging) return;
         event.preventDefault();
         tracker.style.left = `${event.clientX - offset.x}px`;
         tracker.style.top = `${event.clientY - offset.y}px`;
     }
 
     function onMouseUp(event) {
+        if (!isDragging) return;
         event.preventDefault();
+        isDragging = false;
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
+        
         game.settings.set(MODULE_ID, settingKey, {
             top: tracker.style.top,
             left: tracker.style.left
         });
     }
 
-    function onMouseDown(event) {
-        if (event.target.tagName === "IMG" || event.target.tagName === "I") return;
+    tracker.addEventListener("mousedown", (event) => {
+        // Double check we aren't clicking a button (though stopPropagation in buttons should handle it)
+        if (event.target.closest('.control-btn') || event.target.closest('.visibility-icon')) return;
+        
         event.preventDefault();
+        isDragging = true;
         offset = {
             x: event.clientX - tracker.offsetLeft,
             y: event.clientY - tracker.offsetTop
         };
         window.addEventListener("mousemove", onMouseMove);
         window.addEventListener("mouseup", onMouseUp);
-    }
-
-    tracker.addEventListener("mousedown", onMouseDown);
+    });
 }
 
 /* -------------------------------------------- */
-/* Helpers & Sync Logic                        */
+/* Helpers                                     */
 /* -------------------------------------------- */
 
 function refreshAutoVisibility() {
     const mode = game.settings.get(MODULE_ID, "visibilityMode");
     if (mode !== "auto") return;
-
     const el = document.getElementById("fear-tracker-container");
     if (!el) return;
 
-    // Show immediately
     el.style.opacity = "1";
-
-    // Clear any pending fade
     if (_autoHideTimer) clearTimeout(_autoHideTimer);
-
-    // Set new fade timer (10 seconds)
     _autoHideTimer = setTimeout(() => {
-        // Logic for "Reduced Visibility":
-        // Reduced to 0.5 (Dimmed) for EVERYONE (Players and GM)
         el.style.opacity = "0.5";
     }, 10000);
 }
@@ -555,7 +558,6 @@ function getMaxFearTokens() {
         if (typeof homebrewSetting === 'string') {
             try { configData = JSON.parse(homebrewSetting); } catch (e) { return DEFAULT_MAX; }
         }
-
         if (configData && typeof configData === 'object' && 'maxFear' in configData) {
             return Number(configData.maxFear) || DEFAULT_MAX;
         }
@@ -565,72 +567,23 @@ function getMaxFearTokens() {
     }
 }
 
-async function syncTrackerFromSystem(systemFearValue) {
-    const maxTokens = getMaxFearTokens();
-    let safeFear = Math.max(0, Math.min(systemFearValue, maxTokens));
-    const newLeftSide = maxTokens - safeFear;
-    const currentLeftSide = game.settings.get(MODULE_ID, "leftSideCount");
-
-    if (newLeftSide !== currentLeftSide) {
-        if (game.user.isGM) {
-             await game.settings.set(MODULE_ID, "leftSideCount", newLeftSide);
-             game.socket.emit(`module.${MODULE_ID}`, { type: "updatePips", leftSideCount: newLeftSide });
-        }
-        updatePips(newLeftSide);
-    }
-}
-
-async function syncSystemFromTracker(activeFearValue) {
-    if (game.settings.settings.has(`${SYSTEM_ID}.${SYSTEM_FEAR_SETTING}`)) {
-        const currentSetting = game.settings.get(SYSTEM_ID, SYSTEM_FEAR_SETTING);
-        let valueToSave = activeFearValue;
-        let needsUpdate = false;
-
-        if (typeof currentSetting === 'object' && currentSetting !== null && 'value' in currentSetting) {
-            if (currentSetting.value !== activeFearValue) {
-                valueToSave = foundry.utils.deepClone(currentSetting);
-                valueToSave.value = activeFearValue;
-                needsUpdate = true;
-            }
-        } else {
-            if (currentSetting !== activeFearValue) {
-                valueToSave = activeFearValue;
-                needsUpdate = true;
-            }
-        }
-
-        if (needsUpdate) {
-            await game.settings.set(SYSTEM_ID, SYSTEM_FEAR_SETTING, valueToSave);
-        }
-    }
-}
-
 function getThemeAsset(type) {
     const theme = game.settings.get(MODULE_ID, "theme");
     const buttonTheme = game.settings.get(MODULE_ID, "buttonTheme");
-
     const fileMap = {
         slider: "slider.png", pipActive: "pip-active.png", pipInactive: "pip-inactive.png", minus: "minus.png", plus: "plus.png"
     };
     const customSettingMap = {
         slider: "sliderImage", pipActive: "pipActiveImage", pipInactive: "pipInactiveImage", minus: "minusImage", plus: "plusImage"
     };
-
-    // --- BUTTON OVERRIDE LOGIC ---
-    // If we are looking for a button (minus/plus)
     if (type === "minus" || type === "plus") {
-        // Option 1: User explicitly selected "Custom (Use GM Images)" for buttons
         if (buttonTheme === "custom") {
              if (customSettingMap[type]) return game.settings.get(MODULE_ID, customSettingMap[type]);
         }
-        // Option 2: User selected a specific preset button theme
         else if (buttonTheme && buttonTheme !== "match-theme") {
             return `modules/${MODULE_ID}/images/buttons/${buttonTheme}/${fileMap[type]}`;
         }
-        // Option 3: "match-theme" -> Falls through to standard logic below
     }
-
-    // --- STANDARD THEME LOGIC ---
     if (theme === "custom") {
         if (customSettingMap[type]) return game.settings.get(MODULE_ID, customSettingMap[type]);
         return `modules/${MODULE_ID}/images/stone/${fileMap[type]}`;
@@ -644,46 +597,24 @@ function applyPulseColor() {
     document.documentElement.style.setProperty('--fear-glow-color', color);
 }
 
-/**
- * Checks CONFIG.DH for the system's "displayFear" property
- * and sets it to "hide" if the "Hide System Bar" module setting is enabled.
- */
 async function checkAndHideSystemBar() {
     const shouldHide = game.settings.get(MODULE_ID, "hideSystemBar");
     if (!shouldHide) return;
-
-    // Safety check for Daggerheart System Config
-    if (typeof CONFIG.DH === "undefined") {
-        console.warn(`${MODULE_ID} | Daggerheart system config (CONFIG.DH) not found. Skipping system bar hide.`);
-        return;
-    }
+    if (typeof CONFIG.DH === "undefined") return;
 
     try {
-        const appearanceSettings = game.settings.get(
-            CONFIG.DH.id,
-            CONFIG.DH.SETTINGS.gameSettings.appearance
-        );
-
+        const appearanceSettings = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.appearance);
         if (appearanceSettings.displayFear === "hide") return;
 
-        // Criar uma cópia do objeto antes de modificar
         const updatedSettings = foundry.utils.duplicate(appearanceSettings);
         updatedSettings.displayFear = "hide";
-
-        await game.settings.set(
-            CONFIG.DH.id,
-            CONFIG.DH.SETTINGS.gameSettings.appearance,
-            updatedSettings
-        );
-        console.log(`${MODULE_ID} | Daggerheart System Fear Bar hidden automatically.`);
-
+        await game.settings.set(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.appearance, updatedSettings);
     } catch (err) {
         console.error(`${MODULE_ID} | Failed to hide system fear bar:`, err);
     }
 }
 
 function registerSettings() {
-    // Theme Selection (Alphabetical)
     game.settings.register(MODULE_ID, "theme", {
         name: "Theme",
         hint: "Choose the visual theme.",
@@ -707,7 +638,6 @@ function registerSettings() {
         onChange: () => reRender()
     });
 
-    // --- BUTTON THEME SELECTION ---
     game.settings.register(MODULE_ID, "buttonTheme", {
         name: "Buttons Theme",
         hint: "Choose a specific style for the +/- buttons, or match the main theme.",
@@ -727,7 +657,6 @@ function registerSettings() {
         onChange: () => reRender()
     });
 
-    // --- NEW SETTING: Visibility Mode ---
     game.settings.register(MODULE_ID, "visibilityMode", {
         name: "Visibility Behavior",
         hint: "Select how the tracker visibility is handled. 'None': Always visible (default). 'Button': Toggle visibility manually. 'Auto': Hides after 10s of inactivity.",
@@ -743,54 +672,29 @@ function registerSettings() {
         onChange: () => reRender()
     });
 
-    // Pulse Effect (Glow)
     game.settings.register(MODULE_ID, "enablePulse", {
         name: "Pulse Effect (Glow)", hint: "Enable glowing animation for active fear tokens.",
         scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
     });
 
-    // Pulse Glow Color
     game.settings.register(MODULE_ID, "pulseColor", {
-        name: "Pulse Glow Color", 
-        hint: "Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)). Controls the outer glow.",
-        scope: "world", 
-        config: true, 
-        type: String, 
-        default: "#6a0dad",
-        onChange: () => applyPulseColor()
+        name: "Pulse Glow Color", hint: "Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)). Controls the outer glow.",
+        scope: "world", config: true, type: String, default: "#6a0dad", onChange: () => applyPulseColor()
     });
 
-    // --- NEW SETTING: Pip Tint Color ---
     game.settings.register(MODULE_ID, "pipTintColor", {
-        name: "Active Pip Tint Color", 
-        hint: "Enter CSS color (e.g. red, #ff0000). If set, this adds a color tint layer over the image using Blend Mode Multiply (best for coloring textures). Leave empty for original image.",
-        scope: "world", 
-        config: true, 
-        type: String, 
-        default: "",
-        onChange: () => reRender()
+        name: "Active Pip Tint Color", hint: "Enter CSS color (e.g. red, #ff0000). Adds a color tint layer over the image.",
+        scope: "world", config: true, type: String, default: "", onChange: () => reRender()
     });
 
-    // Breathing Effect (Scale)
     game.settings.register(MODULE_ID, "enableScaleAnimation", {
         name: "Breathing Effect (Scale)", hint: "Enable the growing/shrinking animation for active fear tokens.",
         scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
     });
 
-    // Tracker Scale with Preset Size (Small/Normal/Large)
     game.settings.register(MODULE_ID, "trackerSize", {
-        name: "Tracker Size", 
-        hint: "Select the size of the Fear Tracker bar locally.",
-        scope: "client", 
-        config: true, 
-        type: String, 
-        choices: {
-            "small": "Small",
-            "normal": "Normal",
-            "large": "Large"
-        },
-        default: "normal", 
-        onChange: () => reRender()
+        name: "Tracker Size", hint: "Select the size of the Fear Tracker bar locally.",
+        scope: "client", config: true, type: String, choices: { "small": "Small", "normal": "Normal", "large": "Large" }, default: "normal", onChange: () => reRender()
     });
 
     game.settings.register(MODULE_ID, "trackerWidth", {
@@ -798,7 +702,6 @@ function registerSettings() {
         scope: "client", config: true, type: Number, range: { min: 400, max: 2000, step: 10 }, default: 700, onChange: () => reRender()
     });
 
-    // Custom Images (World/GM)
     const imageSettings = [
         { key: "sliderImage", name: "Slider Bar Image", default: "slider.png" },
         { key: "pipActiveImage", name: "Activated Pip Image", default: "pip-active.png" },
@@ -814,32 +717,19 @@ function registerSettings() {
         });
     });
 
-    // Hide Fear Tracker (Local) moved to the very bottom of visible settings
     game.settings.register(MODULE_ID, "hideTrackerClient", {
-        name: "Hide Fear Tracker (Local)",
-        hint: "Hides the Fear Tracker module bar only for you. Does not affect the System bar or other players.",
+        name: "Hide Fear Tracker (Local)", hint: "Hides the Fear Tracker module bar only for you.",
         scope: "client", config: true, type: Boolean, default: false, onChange: () => reRender()
     });
 
-    // Hide System Bar
     game.settings.register(MODULE_ID, "hideSystemBar", {
-        name: "Hide System Bar",
-        hint: "Automatically sets the Daggerheart system's Fear bar setting to 'hide'.",
-        scope: "client", 
-        config: true, 
-        type: Boolean, 
-        default: true,
-        onChange: () => checkAndHideSystemBar()
+        name: "Hide System Bar", hint: "Automatically sets the Daggerheart system's Fear bar setting to 'hide'.",
+        scope: "client", config: true, type: Boolean, default: true, onChange: () => checkAndHideSystemBar()
     });
 
-    // Internal State Settings (Hidden from menu)
     game.settings.register(MODULE_ID, "leftSideCount", {
         name: "Pip Count Left Side (Internal)", scope: "world", config: false, type: Number, default: 12,
-        onChange: (value) => {
-            if (!game.user.isGM) return;
-            const max = getMaxFearTokens();
-            game.settings.set(MODULE_ID, "activeFear", max - value);
-        }
+        // onChange logic handled by global Hook
     });
 
     game.settings.register(MODULE_ID, "activeFear", { scope: "world", config: false, type: Number, default: 0 });

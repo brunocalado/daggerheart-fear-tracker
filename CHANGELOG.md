@@ -1,3 +1,6 @@
+# 1.0.7
+- Should fix: https://github.com/brunocalado/daggerheart-fear-tracker/issues/3
+
 # 1.0.6
 - new buttons
 - new setting for visibility: always visible; old behavior; auto hide
