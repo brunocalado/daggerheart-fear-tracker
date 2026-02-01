@@ -1,3 +1,6 @@
+# 1.0.9
+- set to hide is done right now
+
 # 1.0.8
 - Use also CSS to remove the system bar 
 

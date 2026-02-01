@@ -37,10 +37,8 @@ Hooks.once("ready", async () => {
         // Initialize bar
         initializeTracker();
 
-        // Check system bar hiding
-        setTimeout(() => {
-            checkAndHideSystemBar();
-        }, 1000);
+        // Check system bar hiding - Optimized Pattern
+        checkAndHideSystemBar();
 
         // --- EXPOSE API ---
         window.FearTracker = {
@@ -597,29 +595,45 @@ function applyPulseColor() {
     document.documentElement.style.setProperty('--fear-glow-color', color);
 }
 
+// Optimized function to check and hide system bar securely
 async function checkAndHideSystemBar() {
     const shouldHide = game.settings.get(MODULE_ID, "hideSystemBar");
 
-    // Toggle CSS Class for robust backup
+    // 1. Client-side Visual Toggle (CSS)
+    // Always runs so players get the visual benefit even if they can't change world settings
     if (shouldHide) {
         document.body.classList.add("dh-ft-hide-system-bar");
     } else {
         document.body.classList.remove("dh-ft-hide-system-bar");
-        return; // Stop if disabled
+        return; // If we are unhiding, we don't enforce "hide" in settings
     }
 
-    // Existing System Setting Logic
-    if (typeof CONFIG.DH === "undefined") return;
+    // 2. System Setting Enforcement (System Config)
+    // Removed isGM check so players can update their own client settings if the system setting scope allows it.
+    if (!CONFIG.DH) return;
 
     try {
-        const appearanceSettings = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.appearance);
-        if (appearanceSettings.displayFear === "hide") return;
+        const key = CONFIG.DH.SETTINGS.gameSettings.appearance;
+        
+        // Get raw settings
+        const rawSettings = game.settings.get(CONFIG.DH.id, key);
 
-        const updatedSettings = foundry.utils.duplicate(appearanceSettings);
-        updatedSettings.displayFear = "hide";
-        await game.settings.set(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.appearance, updatedSettings);
+        // Safe conversion using toObject if available (Foundry V13 DataModels)
+        const currentSettings = (typeof rawSettings.toObject === 'function') 
+            ? rawSettings.toObject() 
+            : { ...rawSettings };
+
+        // Verify and Save if necessary
+        if (currentSettings.displayFear !== "hide") {
+            await game.settings.set(CONFIG.DH.id, key, { 
+                ...currentSettings, 
+                displayFear: "hide" 
+            });
+            console.log("Daggerheart Fear Tracker | System Fear Bar setting forced to 'hide'.");
+        }
+
     } catch (err) {
-        console.error(`${MODULE_ID} | Failed to hide system fear bar:`, err);
+        console.warn("Daggerheart Fear Tracker | Failed to enforce system hide setting:", err);
     }
 }
 
