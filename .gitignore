@@ -1,3 +1,7 @@
 .gitattributes
 WORKSPACE
 .gitignore
+AI-GUIDE.md
+.claudeignore
+.aiexclude
+TODO.txt

@@ -354,18 +354,43 @@ function renderLargeTracker() {
 
         pipWrapper.appendChild(inactiveImg);
         pipWrapper.appendChild(activeElement);
+
+        if (isGM) {
+            pipWrapper.classList.add("clickable");
+            pipWrapper.addEventListener("mousedown", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+            });
+            const pipIndex = i;
+            pipWrapper.addEventListener("click", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const currentLeftSide = game.settings.get(MODULE_ID, "leftSideCount");
+                if (pipIndex >= currentLeftSide) {
+                    modifyCount(1); // Active pip (right side): remove fear, same as minus
+                } else {
+                    modifyCount(-1); // Inactive pip (left side): add fear, same as plus
+                }
+            });
+        }
+
         pipContainer.appendChild(pipWrapper);
     }
     slider.appendChild(pipContainer);
 
     // --- Controls ---
     if (isGM) {
-        const minus = createControlBtn("minus", () => modifyCount(1)); 
-        const plus = createControlBtn("plus", () => modifyCount(-1));
-        
-        sliderWrapper.appendChild(minus);
-        sliderWrapper.appendChild(slider);
-        sliderWrapper.appendChild(plus);
+        const showButtons = game.settings.get(MODULE_ID, "buttonTheme") !== "none";
+
+        if (showButtons) {
+            const minus = createControlBtn("minus", () => modifyCount(1));
+            const plus = createControlBtn("plus", () => modifyCount(-1));
+            sliderWrapper.appendChild(minus);
+            sliderWrapper.appendChild(slider);
+            sliderWrapper.appendChild(plus);
+        } else {
+            sliderWrapper.appendChild(slider);
+        }
 
         if (visibilityMode === "button") {
             const eye = createVisibilityBtn();
@@ -515,7 +540,7 @@ function setupDrag(tracker, settingKey) {
 
     tracker.addEventListener("mousedown", (event) => {
         // Double check we aren't clicking a button (though stopPropagation in buttons should handle it)
-        if (event.target.closest('.control-btn') || event.target.closest('.visibility-icon')) return;
+        if (event.target.closest('.control-btn') || event.target.closest('.visibility-icon') || event.target.closest('.pip-wrapper')) return;
         
         event.preventDefault();
         isDragging = true;
@@ -663,11 +688,12 @@ function registerSettings() {
 
     game.settings.register(MODULE_ID, "buttonTheme", {
         name: "Buttons Theme",
-        hint: "Choose a specific style for the +/- buttons, or match the main theme.",
+        hint: "Choose a specific style for the +/- buttons, or match the main theme. 'None' hides the buttons entirely.",
         scope: "world",
         config: true,
         type: String,
         choices: {
+            "none": "None",
             "match-theme": "Match Main Theme",
             "custom": "Custom (Use GM Images)",
             "standard": "Standard",
@@ -676,7 +702,7 @@ function registerSettings() {
             "squared-yp": "Squared",
             "squared-yp-white": "Squared (White)"
         },
-        default: "match-theme",
+        default: "none",
         onChange: () => reRender()
     });
 

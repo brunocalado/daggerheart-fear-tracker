@@ -72,6 +72,14 @@
     /* Vertical Offset (margin-top) is now handled in JS based on Size setting */
 }
 
+.pip-wrapper.clickable {
+    cursor: pointer;
+}
+
+.pip-wrapper.clickable:hover {
+    opacity: 0.7;
+}
+
 /* Standard Pip Image (and Tinted Div base) */
 .pip-img {
     position: absolute;
