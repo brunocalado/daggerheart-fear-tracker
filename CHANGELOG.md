@@ -1,3 +1,6 @@
+# 1.1.0
+- You don't need +/- buttons. Just click the pips
+
 # 1.0.9
 - set to hide is done right now
 
