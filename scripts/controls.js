@@ -108,8 +108,12 @@ export function setupDrag(tracker, settingKey) {
     function onMouseMove(event) {
         if (!isDragging) return;
         event.preventDefault();
-        tracker.style.left = `${event.clientX - offset.x}px`;
-        tracker.style.top = `${event.clientY - offset.y}px`;
+        const maxLeft = window.innerWidth * 0.5;
+        const maxTop = window.innerHeight - tracker.offsetHeight;
+        const newLeft = Math.max(-maxLeft, Math.min(event.clientX - offset.x, maxLeft));
+        const newTop = Math.max(0, Math.min(event.clientY - offset.y, maxTop));
+        tracker.style.left = `${newLeft}px`;
+        tracker.style.top = `${newTop}px`;
     }
 
     function onMouseUp(event) {

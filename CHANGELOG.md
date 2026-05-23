@@ -3,6 +3,7 @@
 - v14 only
 - [Changed] Split monolithic `scripts/main.js` into 7 focused ESM modules: `constants.js`, `helpers.js`, `sync.js`, `controls.js`, `renderer.js`, `settings.js`, `main.js`
 - [Changed] Converted from classic script to ES module (`esmodules` in `module.json`)
+- [Fixed] Fear Tracker can no longer be dragged outside the visible viewport — movement is now clamped to safe bounds
 
 # 1.1.0
 
