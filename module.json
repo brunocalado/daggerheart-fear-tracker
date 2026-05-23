@@ -2,31 +2,38 @@
   "id": "daggerheart-fear-tracker",
   "title": "Daggerheart: Fear Tracker",
   "description": "Adds an animated slider bar with configurable fear tokens to the UI. Includes sync with Daggerheart system resources.",
-  "version": "1.1.0",
+
+  "version": "1.2.0",
+
   "compatibility": {
-    "minimum": "13",
-    "verified": "13"
+    "minimum": "14",
+    "verified": "14"
   },
+
   "styles": [
-    "styles/styles.css"
+    {
+      "src": "styles/styles.css"
+    }
   ],
-  "scripts": [
+
+  "esmodules": [
     "scripts/main.js"
   ],
 
-	"media": [{
-		"type": "setup",
-		"url": "modules/daggerheart-fear-tracker/images/thumbnail.webp",
-		"thumbnail": "modules/daggerheart-fear-tracker/images/thumbnail.webp"
-	}],   
-  
-  "esmodules": [],
+  "media": [
+    {
+      "type": "setup",
+      "url": "modules/daggerheart-fear-tracker/images/thumbnail.webp",
+      "thumbnail": "modules/daggerheart-fear-tracker/images/thumbnail.webp",
+      "loop": false,
+      "flags": {}
+    }
+  ],
 
-  "languages": [],
-  
   "url": "https://github.com/brunocalado/daggerheart-fear-tracker",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-fear-tracker/main/module.json",
   "download": "https://codeload.github.com/brunocalado/daggerheart-fear-tracker/zip/main",
+
   "relationships": {
     "systems": [
       {
@@ -34,13 +41,17 @@
         "type": "system",
         "compatibility": {}
       }
-    ]  
+    ]
   },
+
   "authors": [
     {
-      "name": "Mestre Digital"
+      "name": "Mestre Digital",
+      "url": "http://youtube.com/@mestredigital",
+      "flags": {}
     }
   ],
+
   "packs": [
     {
       "label": "Fear Tracker - Macros",
@@ -52,7 +63,10 @@
         "PLAYER": "OBSERVER",
         "ASSISTANT": "OWNER"
       },
-      "banner": "modules/daggerheart-fear-tracker/images/banner.webp" 
+      "banner": "modules/daggerheart-fear-tracker/images/banner.webp",
+      "flags": {}
     }
-  ]  
+  ],
+
+  "flags": {}
 }

@@ -1,4 +1,11 @@
+# 1.2.0
+
+- v14 only
+- [Changed] Split monolithic `scripts/main.js` into 7 focused ESM modules: `constants.js`, `helpers.js`, `sync.js`, `controls.js`, `renderer.js`, `settings.js`, `main.js`
+- [Changed] Converted from classic script to ES module (`esmodules` in `module.json`)
+
 # 1.1.0
+
 - You don't need +/- buttons. Just click the pips
 
 # 1.0.9
