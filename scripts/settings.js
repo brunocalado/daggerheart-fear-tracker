@@ -15,19 +15,11 @@ export function registerSettings() {
         config: true,
         type: String,
         choices: {
-            "blood-drop": "Blood Drop",
-            "bones": "Bones",
-            "capybara": "Capybara",
             "custom": "Custom",
-            "demon": "Demon",
-            "fire": "Fire",
-            "ghost": "Ghost",
-            "nuclear": "Nuclear",
-            "skull": "Skull",
             "stone": "Stone",
             "stone-red": "Stone Red"
         },
-        default: "skull",
+        default: "stone",
         onChange: () => reRender()
     });
 

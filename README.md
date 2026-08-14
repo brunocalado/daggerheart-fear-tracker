@@ -19,7 +19,7 @@ Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Dagger
   - **Glow & Breath:** Active fear tokens pulse and breathe to draw attention.
   - **Tremor:** The bar shakes briefly when Fear increases, adding impact to the moment.
 - **Customizable:**
-  - **Themes:** Choose from various styles like **Nuclear**, **Ghost**, Skull, Blood Drop, Stone, and more.
+  - **Themes:** Choose from styles like **Stone** and **Stone Red**, or bring your own with the **Custom** theme.
   - **Button Styles:** Select specific designs for control buttons (Standard, Round, Squared) or match the main theme.
   - **Size & Width:** Easily switch between **Small**, **Normal**, and **Large** sizes and adjust the width to fit your screen.
   - **Tinting:** Apply color tints to active pips to match specific aesthetics using blend modes.
@@ -30,7 +30,7 @@ Adds a GM-controlled, animated slider bar for tracking Fear tokens in the Dagger
 
 Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** tab.
 
-* **Theme:** Choose how the tracker looks. Includes **Nuclear**, **Ghost**, **Stone**, and more.
+* **Theme:** Choose how the tracker looks. Includes **Stone**, **Stone Red**, and **Custom**.
 * **Buttons Theme:** Choose a specific style for the +/- buttons (e.g., Round, Squared) or use Custom images defined by the GM.
 * **Visibility Behavior:** Select the visibility logic:
   * **None:** Always visible.

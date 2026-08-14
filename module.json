@@ -47,20 +47,5 @@
       "flags": {}
     }
   ],
-  "packs": [
-    {
-      "label": "Fear Tracker - Macros",
-      "type": "Macro",
-      "name": "fear-tracker-macros",
-      "path": "packs/fear-tracker-macros",
-      "system": "daggerheart",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      },
-      "banner": "modules/daggerheart-fear-tracker/images/banner.webp",
-      "flags": {}
-    }
-  ],
   "flags": {}
 }
