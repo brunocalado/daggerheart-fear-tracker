@@ -4,8 +4,15 @@ import { registerSettings } from "./settings.js";
 import { syncTrackerFromSystem, syncSystemFromTracker } from "./sync.js";
 import { toggleVisibilityUI } from "./controls.js";
 import { updatePips, reRender, initializeTracker } from "./renderer.js";
+import { registerTheme } from "./theme-api.js";
 
 Hooks.once("init", () => {
+    // Expose the public theme API. Other modules should read this in their own "init" or
+    // "ready" hook; registerTheme() works correctly from either since it patches the live
+    // setting if registerSettings() below has already run.
+    const module = game.modules.get(MODULE_ID);
+    if (module) module.api = { registerTheme };
+
     registerSettings();
 });
 

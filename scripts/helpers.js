@@ -1,4 +1,5 @@
 import { MODULE_ID, SYSTEM_ID, SYSTEM_HOMEBREW_SETTING } from "./constants.js";
+import { getCustomTheme } from "./theme-api.js";
 
 // Owned exclusively by refreshAutoVisibility; not exported.
 let _autoHideTimer = null;
@@ -41,13 +42,16 @@ export function getThemeAsset(type) {
     const customSettingMap = {
         slider: "sliderImage", pipActive: "pipActiveImage", pipInactive: "pipInactiveImage"
     };
-    const themeDefault = `modules/${MODULE_ID}/images/${theme}/${fileMap[type]}`;
 
     if (game.settings.get(MODULE_ID, "useCustomImages")) {
         const customPath = game.settings.get(MODULE_ID, customSettingMap[type]);
         if (customPath) return customPath;
     }
-    return themeDefault;
+
+    const registeredTheme = getCustomTheme(theme);
+    if (registeredTheme) return registeredTheme.assets[type];
+
+    return `modules/${MODULE_ID}/images/${theme}/${fileMap[type]}`;
 }
 
 /**

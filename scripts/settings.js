@@ -1,8 +1,9 @@
-import { MODULE_ID, VISIBILITY_SETTING } from "./constants.js";
+import { MODULE_ID, VISIBILITY_SETTING, BUILTIN_THEME_CHOICES } from "./constants.js";
 import { applyPulseColor, checkAndHideSystemBar } from "./helpers.js";
 import { reRender } from "./renderer.js";
 import { EffectsSettingsApp } from "./apps/effects-settings-app.js";
 import { CustomImagesSettingsApp } from "./apps/custom-images-app.js";
+import { getCustomThemeChoices } from "./theme-api.js";
 
 /**
  * Registers all module settings with Foundry's settings API.
@@ -16,8 +17,8 @@ export function registerSettings() {
         config: true,
         type: String,
         choices: {
-            "stone": "Stone",
-            "stone-red": "Stone Red"
+            ...BUILTIN_THEME_CHOICES,
+            ...getCustomThemeChoices()
         },
         default: "stone",
         onChange: () => reRender()

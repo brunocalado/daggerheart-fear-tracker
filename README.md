@@ -74,6 +74,12 @@ FearTracker.Reset(100, 100);
 3. Go to the **"Add-on Modules"** tab and click **"Install Module"**.
 4. Paste the link into the **"Manifest URL"** box and click Install.
 
+## 🔌 Theme API for Module Developers
+
+Other modules can register their own entries in the **Theme** dropdown via a small public
+API (`game.modules.get("daggerheart-fear-tracker").api.registerTheme(...)`). See
+[docs/theme-api.md](docs/theme-api.md) for the full guide and examples.
+
 ## 📜 Changelog
 
 You can read the full history of changes in the [CHANGELOG](CHANGELOG.md).

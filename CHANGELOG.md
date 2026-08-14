@@ -1,3 +1,7 @@
+# 1.2.5
+
+- [Added] Theme API for other modules: `game.modules.get("daggerheart-fear-tracker").api.registerTheme(id, label, assets)` adds a new entry to the "Theme" setting dropdown, backed by that module's own images — see [docs/theme-api.md](docs/theme-api.md)
+
 # 1.2.4
 
 - [Added] New "Custom Images" settings menu, opened via a button in the module's settings, with a "Use Custom Images" toggle and Slider Bar / Activated Pip / Inactive Pip image pickers, each with a thumbnail preview and a larger hover preview
