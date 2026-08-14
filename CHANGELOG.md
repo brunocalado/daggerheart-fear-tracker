@@ -1,3 +1,9 @@
+# 1.2.3
+
+- [Changed] The +/- buttons are now built with plain HTML/CSS/JS instead of image assets — square, beveled, gold on the left (-) and purple on the right (+)
+- [Changed] "Buttons Theme" setting (image skins: Standard, Round, Squared, Custom) replaced with a simple "Show +/- Buttons" toggle
+- [Removed] GM custom Plus/Minus Button Image settings — no longer needed since the buttons aren't image-based
+
 # 1.2.2
 
 - [Added] New "Visual Effects" settings menu, opened via a button in the module's settings, grouping Pulse Effect, Pulse Glow Color, Breathing Effect, and Active Pip Tint Color into one dialog

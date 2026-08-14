@@ -85,7 +85,7 @@ Hooks.on("updateSetting", (setting, change, options, userId) => {
             setting.key.includes("enableScaleAnimation") ||
             setting.key.includes("trackerSize") ||
             setting.key.includes("theme") ||
-            setting.key.includes("buttonTheme") ||
+            setting.key.includes("showControlButtons") ||
             setting.key.includes("visibilityMode")
         ) {
             reRender();

@@ -185,7 +185,7 @@ export function renderLargeTracker() {
     slider.appendChild(pipContainer);
 
     if (isGM) {
-        const showButtons = game.settings.get(MODULE_ID, "buttonTheme") !== "none";
+        const showButtons = game.settings.get(MODULE_ID, "showControlButtons");
         if (showButtons) {
             const minus = createControlBtn("minus", () => modifyCount(1));
             const plus = createControlBtn("plus", () => modifyCount(-1));

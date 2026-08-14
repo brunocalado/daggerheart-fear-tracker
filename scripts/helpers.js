@@ -29,29 +29,18 @@ export function getMaxFearTokens() {
 }
 
 /**
- * Resolves the filesystem path for a tracker asset based on current theme/button settings.
- * @param {string} type - "slider" | "pipActive" | "pipInactive" | "minus" | "plus"
+ * Resolves the filesystem path for a tracker asset based on the current theme setting.
+ * @param {string} type - "slider" | "pipActive" | "pipInactive"
  * @returns {string}
  */
 export function getThemeAsset(type) {
     const theme = game.settings.get(MODULE_ID, "theme");
-    const buttonTheme = game.settings.get(MODULE_ID, "buttonTheme");
     const fileMap = {
-        slider: "slider.png", pipActive: "pip-active.png", pipInactive: "pip-inactive.png",
-        minus: "minus.png", plus: "plus.png"
+        slider: "slider.png", pipActive: "pip-active.png", pipInactive: "pip-inactive.png"
     };
     const customSettingMap = {
-        slider: "sliderImage", pipActive: "pipActiveImage", pipInactive: "pipInactiveImage",
-        minus: "minusImage", plus: "plusImage"
+        slider: "sliderImage", pipActive: "pipActiveImage", pipInactive: "pipInactiveImage"
     };
-
-    if (type === "minus" || type === "plus") {
-        if (buttonTheme === "custom") {
-            if (customSettingMap[type]) return game.settings.get(MODULE_ID, customSettingMap[type]);
-        } else if (buttonTheme && buttonTheme !== "match-theme") {
-            return `modules/${MODULE_ID}/images/buttons/${buttonTheme}/${fileMap[type]}`;
-        }
-    }
 
     if (theme === "custom") {
         if (customSettingMap[type]) return game.settings.get(MODULE_ID, customSettingMap[type]);

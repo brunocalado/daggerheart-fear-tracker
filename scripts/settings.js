@@ -23,23 +23,13 @@ export function registerSettings() {
         onChange: () => reRender()
     });
 
-    game.settings.register(MODULE_ID, "buttonTheme", {
-        name: "Buttons Theme",
-        hint: "Choose a specific style for the +/- buttons, or match the main theme. 'None' hides the buttons entirely.",
+    game.settings.register(MODULE_ID, "showControlButtons", {
+        name: "Show +/- Buttons",
+        hint: "Show the +/- buttons next to the tracker to add or remove fear.",
         scope: "world",
         config: true,
-        type: String,
-        choices: {
-            "none": "None",
-            "match-theme": "Match Main Theme",
-            "custom": "Custom (Use GM Images)",
-            "standard": "Standard",
-            "round-yp": "Round",
-            "round-yp-white": "Round (White)",
-            "squared-yp": "Squared",
-            "squared-yp-white": "Squared (White)"
-        },
-        default: "none",
+        type: Boolean,
+        default: true,
         onChange: () => reRender()
     });
 
@@ -103,9 +93,7 @@ export function registerSettings() {
     const imageSettings = [
         { key: "sliderImage", name: "Slider Bar Image", default: "slider.png" },
         { key: "pipActiveImage", name: "Activated Pip Image", default: "pip-active.png" },
-        { key: "pipInactiveImage", name: "Inactive Pip Image", default: "pip-inactive.png" },
-        { key: "plusImage", name: "Plus Button Image", default: "plus.png" },
-        { key: "minusImage", name: "Minus Button Image", default: "minus.png" }
+        { key: "pipInactiveImage", name: "Inactive Pip Image", default: "pip-inactive.png" }
     ];
 
     imageSettings.forEach(s => {

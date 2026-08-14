@@ -1,5 +1,5 @@
 import { MODULE_ID, VISIBILITY_SETTING } from "./constants.js";
-import { getMaxFearTokens, getThemeAsset } from "./helpers.js";
+import { getMaxFearTokens } from "./helpers.js";
 
 /**
  * Increments or decrements leftSideCount by delta, clamped to [0, maxFear].
@@ -23,30 +23,32 @@ export async function modifyCount(delta) {
 }
 
 /**
- * Creates a +/- control button image element.
+ * Creates a +/- control button as a plain HTML button (no image assets).
  * stopPropagation on mousedown prevents the parent drag handler from stealing the click.
  * @param {string} type - "plus" or "minus"
  * @param {Function} onClick
  * @param {string} [sizeClass]
- * @returns {HTMLImageElement}
+ * @returns {HTMLButtonElement}
  */
 export function createControlBtn(type, onClick, sizeClass = "") {
-    const img = document.createElement("img");
-    img.src = getThemeAsset(type);
-    img.className = `control-btn ${sizeClass}`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = type === "plus" ? "+" : "−";
+    btn.className = `control-btn control-btn-${type} ${sizeClass}`;
+    btn.setAttribute("aria-label", type === "plus" ? "Add Fear" : "Remove Fear");
 
-    img.addEventListener("mousedown", (e) => {
+    btn.addEventListener("mousedown", (e) => {
         e.stopPropagation();
         e.preventDefault();
     });
 
-    img.addEventListener("click", (e) => {
+    btn.addEventListener("click", (e) => {
         e.stopPropagation();
         e.preventDefault();
         onClick();
     });
 
-    return img;
+    return btn;
 }
 
 /**
