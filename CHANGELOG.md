@@ -1,3 +1,10 @@
+# 1.2.2
+
+- [Added] New "Visual Effects" settings menu, opened via a button in the module's settings, grouping Pulse Effect, Pulse Glow Color, Breathing Effect, and Active Pip Tint Color into one dialog
+- [Changed] Pulse Effect (Glow), Pulse Glow Color, Breathing Effect (Scale), and Active Pip Tint Color no longer appear in the main settings list — moved into the new Visual Effects menu
+- [Changed] Pulse Glow Color and Active Pip Tint Color now use a color picker (swatch + text field) instead of a plain text input
+- [Changed] Boolean toggles in the Visual Effects menu now render as switches instead of checkboxes
+
 # 1.2.1
 
 - [Fixed] Custom pip/slider/button images (set via the FilePicker settings) now update the Fear Tracker immediately instead of requiring a client reload

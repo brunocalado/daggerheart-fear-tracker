@@ -1,0 +1,29 @@
+<div class="dhft-effects-form">
+    <div class="dhft-field">
+        <div class="dhft-field-header">
+            <label for="enablePulse">Pulse Effect (Glow)</label>
+            <input type="checkbox" class="dhft-toggle" id="enablePulse" name="enablePulse" {{checked enablePulse}}>
+        </div>
+        <p class="hint">Enable glowing animation for active fear tokens.</p>
+    </div>
+
+    <div class="dhft-field">
+        <label for="pulseColor">Pulse Glow Color</label>
+        <color-picker id="pulseColor" name="pulseColor" value="{{pulseColor}}" placeholder="#6a0dad"></color-picker>
+        <p class="hint">Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)). Controls the outer glow.</p>
+    </div>
+
+    <div class="dhft-field">
+        <div class="dhft-field-header">
+            <label for="enableScaleAnimation">Breathing Effect (Scale)</label>
+            <input type="checkbox" class="dhft-toggle" id="enableScaleAnimation" name="enableScaleAnimation" {{checked enableScaleAnimation}}>
+        </div>
+        <p class="hint">Enable the growing/shrinking animation for active fear tokens.</p>
+    </div>
+
+    <div class="dhft-field">
+        <label for="pipTintColor">Active Pip Tint Color</label>
+        <color-picker id="pipTintColor" name="pipTintColor" value="{{pipTintColor}}" placeholder="#ffffff"></color-picker>
+        <p class="hint">Enter CSS color (e.g. red, #ff0000). Adds a color tint layer over the image. Leave blank to disable.</p>
+    </div>
+</div>

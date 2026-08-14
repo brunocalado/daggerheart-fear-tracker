@@ -2,7 +2,7 @@
   "id": "daggerheart-fear-tracker",
   "title": "Daggerheart: Fear Tracker",
   "description": "Adds an animated slider bar with configurable fear tokens to the UI. Includes sync with Daggerheart system resources.",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "compatibility": {
     "minimum": "14",
     "verified": "14",
@@ -11,6 +11,9 @@
   "styles": [
     {
       "src": "styles/styles.css"
+    },
+    {
+      "src": "styles/effects-settings.css"
     }
   ],
   "esmodules": [

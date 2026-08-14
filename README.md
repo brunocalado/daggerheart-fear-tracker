@@ -38,9 +38,10 @@ Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** 
   * **Auto-Hide:** Automatically reduces visibility after 10 seconds of inactivity.
 * **Tracker Size:** Select **Small**, **Normal**, or **Large**. (Recommended: Normal).
 * **Tracker Bar Width:** Adjust the width in pixels.
-* **Pulse/Breathing Effects:** Enable or disable animations.
-* **Pulse Glow Color:** Pick a custom color for the glowing effect (outer glow).
-* **Active Pip Tint Color:** Apply a color tint to the active tokens (e.g., `red`, `#00ff00`). Uses multiply blending to dye the texture naturally.
+* **Visual Effects:** Click **"Configure Effects"** to open a dedicated menu for:
+  * **Pulse/Breathing Effects:** Enable or disable animations.
+  * **Pulse Glow Color:** Pick a custom color for the glowing effect (outer glow).
+  * **Active Pip Tint Color:** Apply a color tint to the active tokens (e.g., `red`, `#00ff00`). Uses multiply blending to dye the texture naturally.
 * **Custom Images:** If using the "Custom" theme, you can upload your own images here.
 * **Hide System Bar:** Automatically sets the Daggerheart system's Fear bar setting to 'hide' to avoid visual clutter and duplication.
 

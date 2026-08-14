@@ -1,6 +1,7 @@
 import { MODULE_ID, VISIBILITY_SETTING } from "./constants.js";
 import { applyPulseColor, checkAndHideSystemBar } from "./helpers.js";
 import { reRender } from "./renderer.js";
+import { EffectsSettingsApp } from "./apps/effects-settings-app.js";
 
 /**
  * Registers all module settings with Foundry's settings API.
@@ -65,24 +66,33 @@ export function registerSettings() {
         onChange: () => reRender()
     });
 
+    game.settings.registerMenu(MODULE_ID, "effectsMenu", {
+        name: "Visual Effects",
+        label: "Configure Effects",
+        hint: "Configure the pulse glow, breathing animation, and pip tint color for active fear tokens.",
+        icon: "fa-solid fa-sparkles",
+        type: EffectsSettingsApp,
+        restricted: true
+    });
+
     game.settings.register(MODULE_ID, "enablePulse", {
         name: "Pulse Effect (Glow)", hint: "Enable glowing animation for active fear tokens.",
-        scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
+        scope: "world", config: false, type: Boolean, default: true, onChange: () => reRender()
     });
 
     game.settings.register(MODULE_ID, "pulseColor", {
         name: "Pulse Glow Color", hint: "Enter CSS color (e.g. #6a0dad, red, rgba(100,0,0,0.5)). Controls the outer glow.",
-        scope: "world", config: true, type: String, default: "#6a0dad", onChange: () => applyPulseColor()
+        scope: "world", config: false, type: String, default: "#6a0dad", onChange: () => applyPulseColor()
     });
 
     game.settings.register(MODULE_ID, "pipTintColor", {
         name: "Active Pip Tint Color", hint: "Enter CSS color (e.g. red, #ff0000). Adds a color tint layer over the image.",
-        scope: "world", config: true, type: String, default: "", onChange: () => reRender()
+        scope: "world", config: false, type: String, default: "", onChange: () => reRender()
     });
 
     game.settings.register(MODULE_ID, "enableScaleAnimation", {
         name: "Breathing Effect (Scale)", hint: "Enable the growing/shrinking animation for active fear tokens.",
-        scope: "world", config: true, type: Boolean, default: true, onChange: () => reRender()
+        scope: "world", config: false, type: Boolean, default: true, onChange: () => reRender()
     });
 
     game.settings.register(MODULE_ID, "trackerSize", {
