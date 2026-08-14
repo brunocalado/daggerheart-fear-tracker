@@ -1,3 +1,7 @@
+# 1.2.1
+
+- [Fixed] Custom pip/slider/button images (set via the FilePicker settings) now update the Fear Tracker immediately instead of requiring a client reload
+
 # 1.2.0
 
 - v14 only

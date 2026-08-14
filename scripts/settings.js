@@ -109,7 +109,8 @@ export function registerSettings() {
     imageSettings.forEach(s => {
         game.settings.register(MODULE_ID, s.key, {
             name: `GM (Custom): ${s.name}`, scope: "world", config: true, type: String, filePicker: "image",
-            default: `modules/${MODULE_ID}/images/stone/${s.default}`
+            default: `modules/${MODULE_ID}/images/stone/${s.default}`,
+            onChange: () => reRender()
         });
     });
 
