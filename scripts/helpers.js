@@ -51,7 +51,7 @@ export function getThemeAsset(type) {
     const registeredTheme = getCustomTheme(theme);
     if (registeredTheme) return registeredTheme.assets[type];
 
-    return `modules/${MODULE_ID}/images/${theme}/${fileMap[type]}`;
+    return `modules/${MODULE_ID}/assets/imgs/${theme}/${fileMap[type]}`;
 }
 
 /**
