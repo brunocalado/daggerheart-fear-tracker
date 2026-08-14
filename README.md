@@ -46,7 +46,7 @@ Go to the **"Configure Settings"** menu in Foundry VTT -> **"Module Settings"** 
 * **Hide System Bar:** Automatically sets the Daggerheart system's Fear bar setting to 'hide' to avoid visual clutter and duplication.
 
 <p align="center">
-  <img width="500" src="docs/settings.webp">
+  <img src="docs/settings.webp">
 </p>
 
 ## Macro: Reset Position
