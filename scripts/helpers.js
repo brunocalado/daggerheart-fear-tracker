@@ -41,12 +41,13 @@ export function getThemeAsset(type) {
     const customSettingMap = {
         slider: "sliderImage", pipActive: "pipActiveImage", pipInactive: "pipInactiveImage"
     };
+    const themeDefault = `modules/${MODULE_ID}/images/${theme}/${fileMap[type]}`;
 
-    if (theme === "custom") {
-        if (customSettingMap[type]) return game.settings.get(MODULE_ID, customSettingMap[type]);
-        return `modules/${MODULE_ID}/images/stone/${fileMap[type]}`;
+    if (game.settings.get(MODULE_ID, "useCustomImages")) {
+        const customPath = game.settings.get(MODULE_ID, customSettingMap[type]);
+        if (customPath) return customPath;
     }
-    return `modules/${MODULE_ID}/images/${theme}/${fileMap[type]}`;
+    return themeDefault;
 }
 
 /**

@@ -18,6 +18,13 @@ Hooks.once("ready", async () => {
             if (isVisible === undefined) {
                 await game.settings.set(MODULE_ID, VISIBILITY_SETTING, true);
             }
+
+            // Migration: the "custom" theme choice was replaced by the "Use Custom Images"
+            // toggle. Worlds still storing the old value need to be moved onto the new scheme.
+            if (game.settings.get(MODULE_ID, "theme") === "custom") {
+                await game.settings.set(MODULE_ID, "useCustomImages", true);
+                await game.settings.set(MODULE_ID, "theme", "stone");
+            }
         }
 
         initializeTracker();

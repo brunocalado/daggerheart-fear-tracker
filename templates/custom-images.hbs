@@ -1,0 +1,54 @@
+<div class="dhft-custom-images-form">
+    <div class="dhft-field">
+        <div class="dhft-field-header">
+            <label for="useCustomImages">Use Custom Images</label>
+            <input type="checkbox" class="dhft-toggle" id="useCustomImages" name="useCustomImages" {{checked useCustomImages}}>
+        </div>
+        <p class="hint">When enabled, any image set below overrides the selected theme's image for that slot. Empty slots fall back to the theme.</p>
+    </div>
+
+    <div class="dhft-field">
+        <label for="sliderImage">Slider Bar Image</label>
+        <div class="dhft-image-picker">
+            <div class="dhft-image-preview">
+                {{#if sliderImage}}
+                    <img src="{{sliderImage}}" alt="">
+                    <div class="dhft-image-preview-zoom"><img src="{{sliderImage}}" alt=""></div>
+                {{else}}
+                    <i class="fa-solid fa-image"></i>
+                {{/if}}
+            </div>
+            <file-picker id="sliderImage" name="sliderImage" type="image" value="{{sliderImage}}" placeholder="Leave empty to use the theme's image"></file-picker>
+        </div>
+    </div>
+
+    <div class="dhft-field">
+        <label for="pipActiveImage">Activated Pip Image</label>
+        <div class="dhft-image-picker">
+            <div class="dhft-image-preview">
+                {{#if pipActiveImage}}
+                    <img src="{{pipActiveImage}}" alt="">
+                    <div class="dhft-image-preview-zoom"><img src="{{pipActiveImage}}" alt=""></div>
+                {{else}}
+                    <i class="fa-solid fa-image"></i>
+                {{/if}}
+            </div>
+            <file-picker id="pipActiveImage" name="pipActiveImage" type="image" value="{{pipActiveImage}}" placeholder="Leave empty to use the theme's image"></file-picker>
+        </div>
+    </div>
+
+    <div class="dhft-field">
+        <label for="pipInactiveImage">Inactive Pip Image</label>
+        <div class="dhft-image-picker">
+            <div class="dhft-image-preview">
+                {{#if pipInactiveImage}}
+                    <img src="{{pipInactiveImage}}" alt="">
+                    <div class="dhft-image-preview-zoom"><img src="{{pipInactiveImage}}" alt=""></div>
+                {{else}}
+                    <i class="fa-solid fa-image"></i>
+                {{/if}}
+            </div>
+            <file-picker id="pipInactiveImage" name="pipInactiveImage" type="image" value="{{pipInactiveImage}}" placeholder="Leave empty to use the theme's image"></file-picker>
+        </div>
+    </div>
+</div>

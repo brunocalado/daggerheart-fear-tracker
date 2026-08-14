@@ -1,3 +1,10 @@
+# 1.2.4
+
+- [Added] New "Custom Images" settings menu, opened via a button in the module's settings, with a "Use Custom Images" toggle and Slider Bar / Activated Pip / Inactive Pip image pickers, each with a thumbnail preview and a larger hover preview
+- [Changed] "Theme" setting no longer offers a "Custom" choice — overriding the theme's images is now done via the "Use Custom Images" toggle in the new Custom Images menu
+- [Changed] GM custom Slider/Pip image settings moved out of the main settings list into the new Custom Images menu; they're empty by default and, left empty, fall back to the selected theme's image
+- [Fixed] Existing worlds with the old "Custom" theme selected are automatically migrated to the "Use Custom Images" toggle so their configured images keep working
+
 # 1.2.3
 
 - [Changed] The +/- buttons are now built with plain HTML/CSS/JS instead of image assets — square, beveled, gold on the left (-) and purple on the right (+)

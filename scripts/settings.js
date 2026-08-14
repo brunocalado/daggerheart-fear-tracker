@@ -2,6 +2,7 @@ import { MODULE_ID, VISIBILITY_SETTING } from "./constants.js";
 import { applyPulseColor, checkAndHideSystemBar } from "./helpers.js";
 import { reRender } from "./renderer.js";
 import { EffectsSettingsApp } from "./apps/effects-settings-app.js";
+import { CustomImagesSettingsApp } from "./apps/custom-images-app.js";
 
 /**
  * Registers all module settings with Foundry's settings API.
@@ -15,7 +16,6 @@ export function registerSettings() {
         config: true,
         type: String,
         choices: {
-            "custom": "Custom",
             "stone": "Stone",
             "stone-red": "Stone Red"
         },
@@ -90,16 +90,29 @@ export function registerSettings() {
         range: { min: 400, max: 2000, step: 10 }, default: 700, onChange: () => reRender()
     });
 
+    game.settings.registerMenu(MODULE_ID, "customImagesMenu", {
+        name: "Custom Images",
+        label: "Configure Custom Images",
+        hint: "Optionally override the selected theme's slider and pip images with your own.",
+        icon: "fa-solid fa-images",
+        type: CustomImagesSettingsApp,
+        restricted: true
+    });
+
+    game.settings.register(MODULE_ID, "useCustomImages", {
+        name: "Use Custom Images", scope: "world", config: false, type: Boolean, default: false, onChange: () => reRender()
+    });
+
     const imageSettings = [
-        { key: "sliderImage", name: "Slider Bar Image", default: "slider.png" },
-        { key: "pipActiveImage", name: "Activated Pip Image", default: "pip-active.png" },
-        { key: "pipInactiveImage", name: "Inactive Pip Image", default: "pip-inactive.png" }
+        { key: "sliderImage", name: "Slider Bar Image" },
+        { key: "pipActiveImage", name: "Activated Pip Image" },
+        { key: "pipInactiveImage", name: "Inactive Pip Image" }
     ];
 
     imageSettings.forEach(s => {
         game.settings.register(MODULE_ID, s.key, {
-            name: `GM (Custom): ${s.name}`, scope: "world", config: true, type: String, filePicker: "image",
-            default: `modules/${MODULE_ID}/images/stone/${s.default}`,
+            name: s.name, scope: "world", config: false, type: String,
+            default: "",
             onChange: () => reRender()
         });
     });
