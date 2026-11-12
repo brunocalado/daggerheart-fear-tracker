@@ -39,7 +39,9 @@
       {
         "id": "daggerheart",
         "type": "system",
-        "compatibility": {}
+        "compatibility": {
+          "minimum": "2.12.8"
+        }
       }
     ]
   },
