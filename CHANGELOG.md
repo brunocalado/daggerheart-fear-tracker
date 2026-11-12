@@ -1,4 +1,4 @@
-# Unreleased
+# 1.3.0
 
 - [Breaking][Changed] Requires Daggerheart system 2.12.8 or later
 - [Fixed] Players no longer get a console warning on load from the module trying to write the system's Appearance setting; only the GM enforces hiding the system Fear bar
