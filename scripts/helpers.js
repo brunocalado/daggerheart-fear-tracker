@@ -81,7 +81,7 @@ export function refreshAutoVisibility() {
 
 /**
  * Applies the CSS class that hides the system fear bar and enforces the system setting when applicable.
- * Runs for all clients so players benefit visually even without world-write permission.
+ * The CSS class is applied on every client; the world setting is enforced by the GM only.
  * @returns {Promise<void>}
  */
 export async function checkAndHideSystemBar() {
@@ -94,7 +94,8 @@ export async function checkAndHideSystemBar() {
         return;
     }
 
-    if (!CONFIG.DH) return;
+    // The Appearance setting is world-scoped; only a GM may write it.
+    if (!CONFIG.DH || !game.user.isGM) return;
 
     try {
         const key = CONFIG.DH.SETTINGS.gameSettings.appearance;

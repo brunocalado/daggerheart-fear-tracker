@@ -1,3 +1,7 @@
+# Unreleased
+
+- [Fixed] Players no longer get a console warning on load from the module trying to write the system's Appearance setting; only the GM enforces hiding the system Fear bar
+
 # 1.2.5
 
 - [Added] Theme API for other modules: `game.modules.get("daggerheart-fear-tracker").api.registerTheme(id, label, assets)` adds a new entry to the "Theme" setting dropdown, backed by that module's own images — see [docs/theme-api.md](docs/theme-api.md)
